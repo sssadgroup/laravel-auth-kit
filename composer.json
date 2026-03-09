@@ -7,7 +7,7 @@
     "authors": [
         {
             "name": "3S Tech Group",
-            "email": "contact@3sgroupsn.com"
+            "email": "dev@izi.sn"
         }
     ],
     "require": {
@@ -19,13 +19,13 @@
     },
     "autoload": {
         "psr-4": {
-            "S3Tech\AuthKit\\": "src/"
+            "S3Tech\\AuthKit\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "S3Tech\AuthKit\\AuthKitServiceProvider"
+                "S3Tech\\AuthKit\\AuthKitServiceProvider"
             ]
         }
     },
