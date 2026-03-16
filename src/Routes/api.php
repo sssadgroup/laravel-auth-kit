@@ -113,7 +113,7 @@ Route::prefix($prefix)->middleware($middleware)->group(function () {
          * Requiert la permission 'manage-roles' (ou créer une permission dédiée).
          */
         Route::get('activity-logs/user/{user}', [ActivityLogController::class, 'userLogs'])
-            ->middleware('can:' . config('auth-kit.permissions.manage_roles, manage-roles'));
+            ->middleware('can:' . config('auth-kit.permissions.manage_roles', 'manage-roles'));
 
         /**
          * Consulter tous les logs (admin seulement).

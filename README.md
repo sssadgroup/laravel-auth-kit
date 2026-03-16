@@ -7,16 +7,16 @@ Installez-le et tout est prêt : authentification, profil, réinitialisation OTP
 
 ## 📦 Fonctionnalités
 
-| Fonctionnalité | Détail |
-|---|---|
-| **Authentification** | Sanctum — login, logout multi-mode, `/me` |
-| **Sessions** | Liste des appareils connectés, révocation ciblée |
-| **Inscription** | Mode `self` (autonome) **ou** mode `admin` (habilité + mot de passe temporaire par email) |
-| **Profil** | Champs optionnels, liste configurable, statut non modifiable |
-| **Mot de passe** | Changement (propre) / modification par admin **interdite** |
-| **Réinitialisation** | Flux OTP 3 étapes (email → code → reset) |
-| **Rôles & Permissions** | Spatie Laravel Permission — CRUD complet |
-| **Logs d'activité** | IP, appareil, OS, navigateur, géolocalisation GPS |
+| Fonctionnalité          | Détail                                                                                    |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| **Authentification**    | Sanctum — login, logout multi-mode, `/me`                                                 |
+| **Sessions**            | Liste des appareils connectés, révocation ciblée                                          |
+| **Inscription**         | Mode `self` (autonome) **ou** mode `admin` (habilité + mot de passe temporaire par email) |
+| **Profil**              | Champs optionnels, liste configurable, statut non modifiable                              |
+| **Mot de passe**        | Changement (propre) / modification par admin **interdite**                                |
+| **Réinitialisation**    | Flux OTP 3 étapes (email → code → reset)                                                  |
+| **Rôles & Permissions** | Spatie Laravel Permission — CRUD complet                                                  |
+| **Logs d'activité**     | IP, appareil, OS, navigateur, géolocalisation GPS                                         |
 
 ---
 
@@ -29,6 +29,7 @@ composer require s3tech/laravel-auth-kit
 ```
 
 En développement local (path repository) :
+
 ```json
 "repositories": [{ "type": "path", "url": "../laravel-auth-kit" }],
 "require": { "s3tech/laravel-auth-kit": "*" }
@@ -78,7 +79,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasRoles, HasAuthKit;
 
-    protected $fillable = ['name', 'email', 'password', 'must_change_password'];
+    protected $fillable = ['first_name', 'last_name', 'phone', 'email', 'password', 'must_change_password', 'status'];
 
     protected $hidden = ['password', 'remember_token'];
 }
@@ -89,11 +90,13 @@ class User extends Authenticatable
 ### 5. Guard Sanctum pour Spatie
 
 Dans `config/permission.php` :
+
 ```php
 'guard_name' => 'sanctum',
 ```
 
 Dans `config/auth.php`, s'assurer que le guard existe :
+
 ```php
 'guards' => [
     'sanctum' => ['driver' => 'sanctum', 'provider' => 'users'],
@@ -151,7 +154,7 @@ return [
     'profile' => [
         // Champs modifiables via PUT /profile et PUT /users/{user}
         // Ajouter 'phone', 'avatar'… selon votre table users
-        'editable_fields' => ['name', 'email'],
+        'editable_fields' => ['first_name', 'last_name', 'email', 'phone'],
     ],
 
     'activity_log' => [
@@ -186,40 +189,40 @@ return [
 
 ### Publiques
 
-| Méthode | Endpoint | Description | Condition |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Inscription autonome | Mode `self` uniquement |
-| `POST` | `/api/auth/login` | Connexion | — |
-| `POST` | `/api/auth/forgot-password` | Envoyer OTP | — |
-| `POST` | `/api/auth/verify-otp` | Vérifier OTP → reset_token | — |
-| `POST` | `/api/auth/reset-password` | Réinitialiser le mot de passe | — |
+| Méthode | Endpoint                    | Description                   | Condition              |
+| ------- | --------------------------- | ----------------------------- | ---------------------- |
+| `POST`  | `/api/auth/register`        | Inscription autonome          | Mode `self` uniquement |
+| `POST`  | `/api/auth/login`           | Connexion                     | —                      |
+| `POST`  | `/api/auth/forgot-password` | Envoyer OTP                   | —                      |
+| `POST`  | `/api/auth/verify-otp`      | Vérifier OTP → reset_token    | —                      |
+| `POST`  | `/api/auth/reset-password`  | Réinitialiser le mot de passe | —                      |
 
 ### Protégées (`auth:sanctum`)
 
-| Méthode | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/auth/me` | Utilisateur connecté |
-| `POST` | `/api/auth/logout` | Déconnexion (voir modes ci-dessous) |
-| `GET` | `/api/auth/sessions` | Liste des sessions actives |
-| `PUT` | `/api/profile` | Modifier son propre profil |
-| `PUT` | `/api/profile/password` | Changer son mot de passe |
-| `POST` | `/api/users` | Créer un utilisateur (permission `create-user`) |
-| `PUT` | `/api/users/{user}` | Modifier le profil d'un user (permission `update-user`) |
-| `GET` | `/api/activity-logs/me` | Mes logs d'activité |
-| `GET` | `/api/activity-logs/user/{user}` | Logs d'un user (permission `manage-roles`) |
-| `GET` | `/api/activity-logs` | Tous les logs (permission `manage-roles`) |
+| Méthode | Endpoint                         | Description                                             |
+| ------- | -------------------------------- | ------------------------------------------------------- |
+| `GET`   | `/api/auth/me`                   | Utilisateur connecté                                    |
+| `POST`  | `/api/auth/logout`               | Déconnexion (voir modes ci-dessous)                     |
+| `GET`   | `/api/auth/sessions`             | Liste des sessions actives                              |
+| `PUT`   | `/api/profile`                   | Modifier son propre profil                              |
+| `PUT`   | `/api/profile/password`          | Changer son mot de passe                                |
+| `POST`  | `/api/users`                     | Créer un utilisateur (permission `create-user`)         |
+| `PUT`   | `/api/users/{user}`              | Modifier le profil d'un user (permission `update-user`) |
+| `GET`   | `/api/activity-logs/me`          | Mes logs d'activité                                     |
+| `GET`   | `/api/activity-logs/user/{user}` | Logs d'un user (permission `manage-roles`)              |
+| `GET`   | `/api/activity-logs`             | Tous les logs (permission `manage-roles`)               |
 
 ### Administration rôles (permission `manage-roles`)
 
-| Méthode | Endpoint | Description |
-|---|---|---|
-| `GET/POST` | `/api/roles` | Lister / Créer un rôle |
-| `DELETE` | `/api/roles/{role}` | Supprimer un rôle |
-| `GET/POST` | `/api/permissions` | Lister / Créer une permission |
-| `POST` | `/api/roles/{role}/permissions` | Assigner permission → rôle |
-| `DELETE` | `/api/roles/{role}/permissions/{perm}` | Révoquer permission d'un rôle |
-| `POST` | `/api/users/{user}/roles` | Assigner rôle → utilisateur |
-| `DELETE` | `/api/users/{user}/roles/{role}` | Révoquer rôle d'un utilisateur |
+| Méthode    | Endpoint                               | Description                    |
+| ---------- | -------------------------------------- | ------------------------------ |
+| `GET/POST` | `/api/roles`                           | Lister / Créer un rôle         |
+| `DELETE`   | `/api/roles/{role}`                    | Supprimer un rôle              |
+| `GET/POST` | `/api/permissions`                     | Lister / Créer une permission  |
+| `POST`     | `/api/roles/{role}/permissions`        | Assigner permission → rôle     |
+| `DELETE`   | `/api/roles/{role}/permissions/{perm}` | Révoquer permission d'un rôle  |
+| `POST`     | `/api/users/{user}/roles`              | Assigner rôle → utilisateur    |
+| `DELETE`   | `/api/users/{user}/roles/{role}`       | Révoquer rôle d'un utilisateur |
 
 ---
 
@@ -241,10 +244,12 @@ return [
 ## 👤 Modes d'inscription
 
 ### Mode `self` (défaut)
+
 L'utilisateur s'inscrit via `POST /api/auth/register` avec son propre mot de passe.
 La route est publique.
 
 ### Mode `admin`
+
 - `POST /api/auth/register` est **désactivée**
 - Seul un utilisateur avec la permission `create-user` peut créer des comptes via `POST /api/users`
 - Un **mot de passe temporaire** est généré et envoyé par email

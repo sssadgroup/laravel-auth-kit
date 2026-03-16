@@ -5,9 +5,9 @@ namespace S3Tech\AuthKit\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use S3Tech\AuthKit\Services\ActivityLogService;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use S3Tech\AuthKit\Services\ActivityLogService;
 
 /**
  * RolePermissionController
@@ -49,18 +49,18 @@ class RolePermissionController extends Controller
         ]);
 
         $role = Role::create([
-            'name'       => $request->name,
+            'name' => $request->name,
             'guard_name' => 'sanctum',
         ]);
 
         $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', null, [
-            'action'    => 'role_created',
+            'action' => 'role_created',
             'role_name' => $role->name,
         ]);
 
         return response()->json([
             'message' => "Rôle '{$role->name}' créé.",
-            'role'    => $role,
+            'role' => $role,
         ], 201);
     }
 
@@ -68,13 +68,14 @@ class RolePermissionController extends Controller
      * Supprimer un rôle.
      * DELETE /api/roles/{role}
      */
-    public function deleteRole(Request $request, Role $role): JsonResponse
+    public function deleteRole(Request $request, $roleId): JsonResponse
     {
+        $role = Role::findOrFail($roleId);
         $roleName = $role->name;
         $role->delete();
 
         $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
-            'action'    => 'role_deleted',
+            'action' => 'role_deleted',
             'role_name' => $roleName,
         ]);
 
@@ -106,12 +107,12 @@ class RolePermissionController extends Controller
         ]);
 
         $permission = Permission::create([
-            'name'       => $request->name,
+            'name' => $request->name,
             'guard_name' => 'sanctum',
         ]);
 
         return response()->json([
-            'message'    => "Permission '{$permission->name}' créée.",
+            'message' => "Permission '{$permission->name}' créée.",
             'permission' => $permission,
         ], 201);
     }
@@ -125,16 +126,18 @@ class RolePermissionController extends Controller
      * POST /api/roles/{role}/permissions
      * Body : { permission }
      */
-    public function assignPermissionToRole(Request $request, Role $role): JsonResponse
+    public function assignPermissionToRole(Request $request, $roleId): JsonResponse
     {
         $request->validate([
             'permission' => 'required|string|exists:permissions,name',
         ]);
 
+        $role = Role::findOrFail($roleId);
+
         $role->givePermissionTo($request->permission);
 
         return response()->json([
-            'message' => "Permission '{$request->permission}' assignée au rôle '{$role->name}'.",
+            'message' => "Permission '{$request->permission}' assignée au rôle '{$role->fresh()->name}'.",
         ]);
     }
 
@@ -142,8 +145,10 @@ class RolePermissionController extends Controller
      * Révoquer une permission d'un rôle.
      * DELETE /api/roles/{role}/permissions/{perm}
      */
-    public function revokePermissionFromRole(Request $request, Role $role, string $perm): JsonResponse
+    public function revokePermissionFromRole(Request $request, $roleId, string $perm): JsonResponse
     {
+
+        $role = Role::findOrFail($roleId);
         $role->revokePermissionTo($perm);
 
         return response()->json([
@@ -167,13 +172,13 @@ class RolePermissionController extends Controller
         ]);
 
         $userModel = config('auth-kit.user_model');
-        $user      = $userModel::findOrFail($userId);
+        $user = $userModel::findOrFail($userId);
 
         $user->assignRole($request->role);
 
         $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', null, [
             'target_user_id' => $user->id,
-            'role'           => $request->role,
+            'role' => $request->role,
         ]);
 
         return response()->json([
@@ -188,13 +193,13 @@ class RolePermissionController extends Controller
     public function revokeRoleFromUser(Request $request, int $userId, string $role): JsonResponse
     {
         $userModel = config('auth-kit.user_model');
-        $user      = $userModel::findOrFail($userId);
+        $user = $userModel::findOrFail($userId);
 
         $user->removeRole($role);
 
         $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
             'target_user_id' => $user->id,
-            'role'           => $role,
+            'role' => $role,
         ]);
 
         return response()->json([
