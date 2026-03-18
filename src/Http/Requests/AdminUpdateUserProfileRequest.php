@@ -13,7 +13,10 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class AdminUpdateUserProfileRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -26,6 +29,7 @@ class AdminUpdateUserProfileRequest extends FormRequest
             'last_name'  => 'sometimes|string|max:100',
             'email'      => "sometimes|email|unique:users,email,{$targetUserId}",
             'phone'      => 'sometimes|nullable|string|max:30',
+            'status'      => 'sometimes|nullable|boolean',
         ];
 
         return array_intersect_key($allRules, array_flip($allowed));
