@@ -144,11 +144,11 @@ Route::prefix($prefix)->middleware($middleware)->group(function () {
                 Route::delete('users/{user}/roles/{role}',        [RolePermissionController::class, 'revokeRoleFromUser']);
 
                 Route::post(
-                    '/{user}/permissions',
+                    '/users/{user}/permissions',
                     [RolePermissionController::class, 'assignPermissionToUser']
                 );
                 Route::delete(
-                    '/{user}/permissions/{permission}',
+                    '/users/{user}/permissions/{permission}',
                     [RolePermissionController::class, 'revokePermissionFromUser']
                 );
             });
