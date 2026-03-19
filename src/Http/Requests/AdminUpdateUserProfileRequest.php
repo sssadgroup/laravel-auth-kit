@@ -22,7 +22,7 @@ class AdminUpdateUserProfileRequest extends FormRequest
     {
         // L'ID de l'utilisateur cible est dans l'URL : /users/{user}
         $targetUserId = $this->route('user');
-        $allowed      = config('auth-kit.profile.editable_fields', ['name', 'email']);
+        $allowed      = config('auth-kit.profile.editable_fields', ['first_name', 'last_name']);
 
         $allRules = [
             'first_name' => 'sometimes|string|max:100',

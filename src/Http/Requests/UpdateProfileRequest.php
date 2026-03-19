@@ -13,12 +13,15 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class UpdateProfileRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
         $userId  = $this->user()->id;
-        $allowed = config('auth-kit.profile.editable_fields', ['name', 'email']);
+        $allowed = config('auth-kit.profile.editable_fields', ['first_name', 'last_name']);
 
         $allRules = [
             'first_name' => 'sometimes|string|max:100',

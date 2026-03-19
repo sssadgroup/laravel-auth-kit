@@ -142,6 +142,15 @@ Route::prefix($prefix)->middleware($middleware)->group(function () {
                 // Assignation utilisateur ↔ rôle
                 Route::post('users/{user}/roles',                 [RolePermissionController::class, 'assignRoleToUser']);
                 Route::delete('users/{user}/roles/{role}',        [RolePermissionController::class, 'revokeRoleFromUser']);
+
+                Route::post(
+                    '/{user}/permissions',
+                    [RolePermissionController::class, 'assignPermissionToUser']
+                );
+                Route::delete(
+                    '/{user}/permissions/{permission}',
+                    [RolePermissionController::class, 'revokePermissionFromUser']
+                );
             });
     });
 });

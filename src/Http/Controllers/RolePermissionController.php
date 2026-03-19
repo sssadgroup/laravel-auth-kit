@@ -206,4 +206,77 @@ class RolePermissionController extends Controller
             'message' => "Rôle '{$role}' révoqué de l'utilisateur #{$user->id}.",
         ]);
     }
+
+    /**
+     * Assigner une permission directe à un utilisateur.
+     * POST /api/users/{user}/permissions
+     * Body : { permission }
+     */
+    public function assignPermissionToUser(Request $request, int $userId): JsonResponse
+    {
+        $request->validate([
+            'permission' => 'required|string|exists:permissions,name',
+        ]);
+
+        $userModel = config('auth-kit.user_model');
+        $user = $userModel::findOrFail($userId);
+
+        // Éviter le doublon si déjà assignée
+        if ($user->hasDirectPermission($request->permission)) {
+            return response()->json([
+                'error' => "L'utilisateur possède déjà la permission '{$request->permission}'.",
+                'code' => 422,
+            ], 422);
+        }
+
+        $user->givePermissionTo($request->permission);
+
+        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', null, [
+            'action' => 'permission_assigned_to_user',
+            'target_user_id' => $user->id,
+            'permission' => $request->permission,
+        ]);
+
+        return response()->json([
+            'message' => "Permission '{$request->permission}' assignée à l'utilisateur #{$user->id}.",
+        ]);
+    }
+
+    /**
+     * Révoquer une permission directe d'un utilisateur.
+     * DELETE /api/users/{user}/permissions/{permission}
+     */
+    public function revokePermissionFromUser(Request $request, int $userId, string $permission): JsonResponse
+    {
+        $userModel = config('auth-kit.user_model');
+        $user = $userModel::findOrFail($userId);
+
+        // Vérifier que la permission existe
+        if (! Permission::where('name', $permission)->where('guard_name', 'sanctum')->exists()) {
+            return response()->json([
+                'error' => "La permission '{$permission}' n'existe pas.",
+                'code' => 404,
+            ], 404);
+        }
+
+        // Vérifier qu'elle est bien assignée directement
+        if (! $user->hasDirectPermission($permission)) {
+            return response()->json([
+                'error' => "L'utilisateur ne possède pas la permission directe '{$permission}'.",
+                'code' => 422,
+            ], 422);
+        }
+
+        $user->revokePermissionTo($permission);
+
+        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
+            'action' => 'permission_revoked_from_user',
+            'target_user_id' => $user->id,
+            'permission' => $permission,
+        ]);
+
+        return response()->json([
+            'message' => "Permission '{$permission}' révoquée de l'utilisateur #{$user->id}.",
+        ]);
+    }
 }
