@@ -29,7 +29,7 @@ class AdminUpdateUserProfileRequest extends FormRequest
             'last_name'  => 'sometimes|string|max:100',
             'email'      => "sometimes|email|unique:users,email,{$targetUserId}",
             'phone'      => 'sometimes|nullable|string|max:30',
-            'status'      => 'sometimes|nullable|boolean',
+            'status'      => 'sometimes|in:active,inactive,banned',
         ];
 
         return array_intersect_key($allRules, array_flip($allowed));

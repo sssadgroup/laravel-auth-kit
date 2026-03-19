@@ -129,6 +129,7 @@ Route::prefix($prefix)->middleware($middleware)->group(function () {
                 // Rôles
                 Route::get('roles',              [RolePermissionController::class, 'listRoles']);
                 Route::post('roles',             [RolePermissionController::class, 'createRole']);
+                Route::put('roles/{role}',       [RolePermissionController::class, 'updateRole']);
                 Route::delete('roles/{role}',    [RolePermissionController::class, 'deleteRole']);
 
                 // Permissions
@@ -143,14 +144,8 @@ Route::prefix($prefix)->middleware($middleware)->group(function () {
                 Route::post('users/{user}/roles',                 [RolePermissionController::class, 'assignRoleToUser']);
                 Route::delete('users/{user}/roles/{role}',        [RolePermissionController::class, 'revokeRoleFromUser']);
 
-                Route::post(
-                    '/users/{user}/permissions',
-                    [RolePermissionController::class, 'assignPermissionToUser']
-                );
-                Route::delete(
-                    '/users/{user}/permissions/{permission}',
-                    [RolePermissionController::class, 'revokePermissionFromUser']
-                );
+                Route::post('/users/{user}/permissions',                [RolePermissionController::class, 'assignPermissionToUser']);
+                Route::delete('/users/{user}/permissions/{permission}', [RolePermissionController::class, 'revokePermissionFromUser']);
             });
     });
 });

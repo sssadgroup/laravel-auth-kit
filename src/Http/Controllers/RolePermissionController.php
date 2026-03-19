@@ -65,6 +65,37 @@ class RolePermissionController extends Controller
     }
 
     /**
+     * Modifier un rôle.
+     * PUT /api/roles/{role}
+     * Body : { name }
+     */
+    public function updateRole(Request $request, $roleId): JsonResponse
+    {
+        $role = Role::findOrFail($roleId);
+
+        $request->validate([
+            'name' => "required|string|unique:roles,name,{$role->id}",
+        ]);
+
+        $oldName = $role->name;
+
+        $role->update([
+            'name' => $request->name,
+        ]);
+
+        $this->logger->log($request, 'role_updated', $request->user()->id, 'update', null, [
+            'action' => 'role_updated',
+            'old_name' => $oldName,
+            'new_name' => $role->name,
+        ]);
+
+        return response()->json([
+            'message' => "Rôle '{$oldName}' modifié en '{$role->name}'.",
+            'role' => $role,
+        ]);
+    }
+
+    /**
      * Supprimer un rôle.
      * DELETE /api/roles/{role}
      */
