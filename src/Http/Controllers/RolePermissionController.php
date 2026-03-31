@@ -167,6 +167,12 @@ class RolePermissionController extends Controller
 
         $role->givePermissionTo($request->permission);
 
+        $this->logger->log($request, 'permission_assigned', $request->user()->id, 'create', null, [
+            'action' => 'permission_assigned_to_role',
+            'target_role_id' => $role->id,
+            'permission' => $request->permission,
+        ]);
+
         return response()->json([
             'message' => "Permission '{$request->permission}' assignée au rôle '{$role->fresh()->name}'.",
         ]);
@@ -181,6 +187,11 @@ class RolePermissionController extends Controller
 
         $role = Role::findOrFail($roleId);
         $role->revokePermissionTo($perm);
+
+        $this->logger->log($request, 'permission_revoked', $request->user()->id, 'delete', null, [
+            'target_role_id' => $role->id,
+            'permission' => $perm,
+        ]);
 
         return response()->json([
             'message' => "Permission '{$perm}' révoquée du rôle '{$role->name}'.",
