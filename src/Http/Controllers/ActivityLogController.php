@@ -59,7 +59,7 @@ class ActivityLogController extends Controller
     public function allLogs(Request $request): JsonResponse
     {
         $logs = $this->buildQuery($request)
-            ->with('user:id,name,email')
+            ->with('user:id,first_name,last_name,email')
             ->paginate($request->integer('per_page', 20));
 
         return response()->json($logs);
