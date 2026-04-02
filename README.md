@@ -265,7 +265,15 @@ La route est publique.
 {
   "id": 42,
   "user_id": 7,
-  "event": "login",
+  "event": "profile_updated",
+  "action": "update",
+  "subject_type": "App\\Models\\User",
+  "subject_id": 12,
+  "subject": {
+    "type": "App\\Models\\User",
+    "id": 12,
+    "label": "Jane Doe"
+  },
   "ip_address": "41.82.12.45",
   "device_type": "mobile",
   "device_name": "Android — Chrome",
@@ -281,6 +289,16 @@ La route est publique.
   "created_at": "2024-11-20T14:32:11.000000Z"
 }
 ```
+
+Vous pouvez aussi journaliser n'importe quel modèle Eloquent de votre application comme ressource cible:
+
+```php
+$this->logger->log($request, 'budget_updated', auth()->id(), 'update', $budget, [
+    'updated_fields' => ['amount', 'status'],
+]);
+```
+
+Dans ce cas, la liste des logs retournera automatiquement `subject_type`, `subject_id` et un objet `subject` compact pour identifier la ressource concernée (`Budget`, `Project`, `Invoice`, etc.).
 
 ### Filtres disponibles (query string)
 

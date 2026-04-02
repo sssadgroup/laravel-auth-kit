@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use S3Tech\AuthKit\Models\ActivityLog;
+use S3Tech\AuthKit\Http\Resources\ActivityLogResource;
 
 /**
  * ActivityLogController
@@ -31,10 +32,11 @@ class ActivityLogController extends Controller
     public function myLogs(Request $request): JsonResponse
     {
         $logs = $this->buildQuery($request)
+            ->with('subject')
             ->where('user_id', $request->user()->id)
             ->paginate($request->integer('per_page', 20));
 
-        return response()->json($logs);
+        return ActivityLogResource::collection($logs)->response();
     }
 
     /**
@@ -45,10 +47,11 @@ class ActivityLogController extends Controller
     public function userLogs(Request $request, int $userId): JsonResponse
     {
         $logs = $this->buildQuery($request)
+            ->with('subject')
             ->where('user_id', $userId)
             ->paginate($request->integer('per_page', 20));
 
-        return response()->json($logs);
+        return ActivityLogResource::collection($logs)->response();
     }
 
     /**
@@ -59,10 +62,10 @@ class ActivityLogController extends Controller
     public function allLogs(Request $request): JsonResponse
     {
         $logs = $this->buildQuery($request)
-            ->with('user:id,first_name,last_name,email')
+            ->with(['user:id,first_name,last_name,email', 'subject'])
             ->paginate($request->integer('per_page', 20));
 
-        return response()->json($logs);
+        return ActivityLogResource::collection($logs)->response();
     }
 
     // ─────────────────────────────────────────────────────────────────────────

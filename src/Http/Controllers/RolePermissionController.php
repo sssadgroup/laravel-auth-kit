@@ -83,7 +83,7 @@ class RolePermissionController extends Controller
             'name' => $request->name,
         ]);
 
-        $this->logger->log($request, 'role_updated', $request->user()->id, 'update', null, [
+        $this->logger->log($request, 'role_updated', $request->user()->id, 'update', $role, [
             'action' => 'role_updated',
             'old_name' => $oldName,
             'new_name' => $role->name,
@@ -102,10 +102,18 @@ class RolePermissionController extends Controller
     public function deleteRole(Request $request, $roleId): JsonResponse
     {
         $role = Role::findOrFail($roleId);
+
+        if ($role->users()->exists()) {
+            return response()->json([
+                'error' => "Suppression impossible: le rôle '{$role->name}' est encore assigné à au moins un utilisateur.",
+                'code' => 422,
+            ], 422);
+        }
+
         $roleName = $role->name;
         $role->delete();
 
-        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
+        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', $role, [
             'action' => 'role_deleted',
             'role_name' => $roleName,
         ]);
@@ -164,12 +172,15 @@ class RolePermissionController extends Controller
         ]);
 
         $role = Role::findOrFail($roleId);
+        $permission = Permission::where('name', $request->permission)
+            ->where('guard_name', $role->guard_name)
+            ->firstOrFail();
 
         $role->givePermissionTo($request->permission);
 
-        $this->logger->log($request, 'permission_assigned', $request->user()->id, 'create', null, [
+        $this->logger->log($request, 'permission_assigned', $request->user()->id, 'create', $permission, [
             'action' => 'permission_assigned_to_role',
-            'target_role_id' => $role->id,
+            'role_name' => $role->name,
             'permission' => $request->permission,
         ]);
 
@@ -184,12 +195,23 @@ class RolePermissionController extends Controller
      */
     public function revokePermissionFromRole(Request $request, $roleId, string $perm): JsonResponse
     {
-
         $role = Role::findOrFail($roleId);
+        $permission = Permission::where('name', $perm)
+            ->where('guard_name', $role->guard_name)
+            ->first();
+
+        if (! $permission) {
+            return response()->json([
+                'error' => "La permission '{$perm}' n'existe pas.",
+                'code' => 404,
+            ], 404);
+        }
+
         $role->revokePermissionTo($perm);
 
-        $this->logger->log($request, 'permission_revoked', $request->user()->id, 'delete', null, [
-            'target_role_id' => $role->id,
+        $this->logger->log($request, 'permission_revoked', $request->user()->id, 'delete', $permission, [
+            'action' => 'permission_revoked_from_role',
+            'role_name' => $role->name,
             'permission' => $perm,
         ]);
 
@@ -215,16 +237,24 @@ class RolePermissionController extends Controller
 
         $userModel = config('auth-kit.user_model');
         $user = $userModel::findOrFail($userId);
+        $role = Role::where('name', $request->role)->where('guard_name', 'sanctum')->firstOrFail();
 
-        $user->assignRole($request->role);
+        if ($user->hasRole($role->name)) {
+            return response()->json([
+                'message' => "L'utilisateur #{$user->id} possède déjà le rôle '{$role->name}'.",
+            ], 200);
+        }
 
-        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', null, [
+        $user->assignRole($role->name);
+
+        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', $role, [
+            'action' => 'role_assigned_to_user',
             'target_user_id' => $user->id,
-            'role' => $request->role,
+            'role' => $role->name,
         ]);
 
         return response()->json([
-            'message' => "Rôle '{$request->role}' assigné à l'utilisateur #{$user->id}.",
+            'message' => "Rôle '{$role->name}' assigné à l'utilisateur #{$user->id}.",
         ]);
     }
 
@@ -236,16 +266,31 @@ class RolePermissionController extends Controller
     {
         $userModel = config('auth-kit.user_model');
         $user = $userModel::findOrFail($userId);
+        $roleModel = Role::where('name', $role)->where('guard_name', 'sanctum')->first();
 
-        $user->removeRole($role);
+        if (! $roleModel) {
+            return response()->json([
+                'error' => "Le rôle '{$role}' n'existe pas.",
+                'code' => 404,
+            ], 404);
+        }
 
-        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
+        if (! $user->hasRole($roleModel->name)) {
+            return response()->json([
+                'message' => "L'utilisateur #{$user->id} ne possède pas le rôle '{$roleModel->name}'.",
+            ], 200);
+        }
+
+        $user->removeRole($roleModel->name);
+
+        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', $roleModel, [
+            'action' => 'role_revoked_from_user',
             'target_user_id' => $user->id,
-            'role' => $role,
+            'role' => $roleModel->name,
         ]);
 
         return response()->json([
-            'message' => "Rôle '{$role}' révoqué de l'utilisateur #{$user->id}.",
+            'message' => "Rôle '{$roleModel->name}' révoqué de l'utilisateur #{$user->id}.",
         ]);
     }
 
@@ -273,7 +318,11 @@ class RolePermissionController extends Controller
 
         $user->givePermissionTo($request->permission);
 
-        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', null, [
+        $permission = Permission::where('name', $request->permission)
+            ->where('guard_name', 'sanctum')
+            ->firstOrFail();
+
+        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', $permission, [
             'action' => 'permission_assigned_to_user',
             'target_user_id' => $user->id,
             'permission' => $request->permission,
@@ -311,7 +360,11 @@ class RolePermissionController extends Controller
 
         $user->revokePermissionTo($permission);
 
-        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
+        $permissionModel = Permission::where('name', $permission)
+            ->where('guard_name', 'sanctum')
+            ->firstOrFail();
+
+        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', $permissionModel, [
             'action' => 'permission_revoked_from_user',
             'target_user_id' => $user->id,
             'permission' => $permission,

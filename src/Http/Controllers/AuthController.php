@@ -51,7 +51,7 @@ class AuthController extends Controller
             'last_name'  => $request->last_name,
             'email'      => $request->email,
             'password'   => Hash::make($request->password),
-            'phone'      => $request->phone, // optionnel — null si absent
+            'phone'      => $request->phone ?? null, // optionnel — null si absent
         ]);
 
         $this->assignDefaultRole($user);
@@ -76,7 +76,7 @@ class AuthController extends Controller
      * Un utilisateur habilité (permission 'create-user') crée un compte.
      * Un mot de passe temporaire est généré et envoyé par email.
      *
-     * Body : { first_name, last_name, email, phone?, role? }
+     * Body : { first_name, last_name, email, phone?, role?, status? }
      * Requiert : permission 'create-user' (vérifié dans les routes)
      */
     public function adminCreateUser(AdminCreateUserRequest $request): JsonResponse
@@ -91,6 +91,7 @@ class AuthController extends Controller
             'email'                => $request->email,
             'password'             => Hash::make($temporaryPassword),
             'phone'                => $request->phone,
+            'status'               => $request->input('status', 'active'),
             'must_change_password' => true,
         ]);
 
@@ -261,7 +262,7 @@ class AuthController extends Controller
             ->tokens()
             ->orderByDesc('last_used_at')
             ->get()
-            ->map(fn ($token) => [
+            ->map(fn($token) => [
                 'id'           => $token->id,
                 'name'         => $token->name,
                 'last_used_at' => $token->last_used_at?->toISOString(),

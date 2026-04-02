@@ -4,6 +4,7 @@ namespace S3Tech\AuthKit\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * ActivityLog
@@ -80,5 +81,13 @@ class ActivityLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(config('auth-kit.user_model'), 'user_id');
+    }
+
+    /**
+     * La ressource concernée par l'action (Budget, Project, Invoice, User, etc.).
+     */
+    public function subject(): MorphTo
+    {
+        return $this->morphTo();
     }
 }

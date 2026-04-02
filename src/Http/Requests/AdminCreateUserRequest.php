@@ -15,10 +15,14 @@ use Illuminate\Foundation\Http\FormRequest;
  *   - email       : email unique (obligatoire)
  *   - phone       : numéro de téléphone (optionnel)
  *   - role        : rôle Spatie à assigner (optionnel — doit exister en base)
+ *   - status      : statut du compte (optionnel — active|inactive|banned)
  */
 class AdminCreateUserRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -27,7 +31,9 @@ class AdminCreateUserRequest extends FormRequest
             'last_name'  => 'required|string|max:100',
             'email'      => 'required|email|unique:users,email',
             'phone'      => 'sometimes|nullable|string|max:30',
+            'password'   => 'sometimes|nullable|string|min:8',
             'role'       => 'sometimes|string|exists:roles,name',
+            'status'     => 'sometimes|string|in:active,inactive,banned',
         ];
     }
 }
