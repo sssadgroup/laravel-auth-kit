@@ -2,8 +2,6 @@
 
 namespace S3Tech\AuthKit\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validation de l'inscription en mode 'self'.
  *
@@ -14,7 +12,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *   - password                : mot de passe avec confirmation (obligatoire)
  *   - phone                   : numéro de téléphone (optionnel)
  */
-class RegisterRequest extends FormRequest
+class RegisterRequest extends AuthKitFormRequest
 {
     public function authorize(): bool { return true; }
 

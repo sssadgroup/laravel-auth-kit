@@ -11,6 +11,7 @@ use S3Tech\AuthKit\Http\Requests\ResetPasswordRequest;
 use S3Tech\AuthKit\Mail\OtpMail;
 use S3Tech\AuthKit\Models\PasswordResetOtp;
 use S3Tech\AuthKit\Services\ActivityLogService;
+use S3Tech\AuthKit\Support\ApiResponse;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -57,8 +58,9 @@ class PasswordResetController extends Controller
 
         // Anti-énumération : toujours retourner 200, même si l'email n'existe pas
         if (! $user) {
-            return response()->json([
-                'message' => 'Si cet email existe, un code de vérification a été envoyé.',
+            return ApiResponse::success($request, [
+                'en' => 'If this email exists, a verification code has been sent.',
+                'fr' => 'Si cet email existe, un code de vérification a été envoyé.',
             ]);
         }
 
@@ -83,8 +85,9 @@ class PasswordResetController extends Controller
             'email' => $request->email,
         ]);
 
-        return response()->json([
-            'message' => 'Si cet email existe, un code de vérification a été envoyé.',
+        return ApiResponse::success($request, [
+            'en' => 'If this email exists, a verification code has been sent.',
+            'fr' => 'Si cet email existe, un code de vérification a été envoyé.',
         ]);
     }
 
@@ -114,7 +117,10 @@ class PasswordResetController extends Controller
 
         // Vérifier existence, correspondance du hash et expiration
         if (! $record || ! Hash::check($request->otp, $record->otp) || $record->isExpired()) {
-            return response()->json(['message' => 'Code OTP invalide ou expiré.'], 422);
+            return ApiResponse::error($request, [
+                'en' => 'Invalid or expired OTP code.',
+                'fr' => 'Code OTP invalide ou expiré.',
+            ], [], 422);
         }
 
         // Générer un reset_token aléatoire (hashé en base, envoyé en clair)
@@ -125,8 +131,10 @@ class PasswordResetController extends Controller
             // 'used' reste false : l'OTP est vérifié mais le reset n'est pas encore fait
         ]);
 
-        return response()->json([
-            'message'     => 'Code OTP vérifié.',
+        return ApiResponse::success($request, [
+            'en' => 'OTP code verified.',
+            'fr' => 'Code OTP vérifié.',
+        ], [
             'reset_token' => $resetToken,  // À transmettre à l'étape 3
         ]);
     }
@@ -154,14 +162,20 @@ class PasswordResetController extends Controller
             || ! Hash::check($request->reset_token, $record->reset_token)
             || $record->isExpired()
         ) {
-            return response()->json(['message' => 'Token de réinitialisation invalide ou expiré.'], 422);
+            return ApiResponse::error($request, [
+                'en' => 'Invalid or expired reset token.',
+                'fr' => 'Token de réinitialisation invalide ou expiré.',
+            ], [], 422);
         }
 
         $userModel = config('auth-kit.user_model');
         $user      = $userModel::where('email', $request->email)->first();
 
         if (! $user) {
-            return response()->json(['message' => 'Utilisateur introuvable.'], 404);
+            return ApiResponse::error($request, [
+                'en' => 'User not found.',
+                'fr' => 'Utilisateur introuvable.',
+            ], [], 404);
         }
 
         // Mettre à jour le mot de passe
@@ -175,8 +189,9 @@ class PasswordResetController extends Controller
 
         $this->logger->log($request, 'password_reset', $user->id, 'update', $user);
 
-        return response()->json([
-            'message' => 'Mot de passe réinitialisé avec succès. Veuillez vous reconnecter.',
+        return ApiResponse::success($request, [
+            'en' => 'Password reset successfully. Please log in again.',
+            'fr' => 'Mot de passe réinitialisé avec succès. Veuillez vous reconnecter.',
         ]);
     }
 }

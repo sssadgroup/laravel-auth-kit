@@ -2,8 +2,6 @@
 
 namespace S3Tech\AuthKit\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validation de la mise à jour du profil de l'utilisateur connecté.
  *
@@ -11,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * Le mot de passe est EXCLU intentionnellement — il a sa propre route dédiée.
  * Le champ 'email' utilise l'ignore de l'ID courant pour les règles d'unicité.
  */
-class UpdateProfileRequest extends FormRequest
+class UpdateProfileRequest extends AuthKitFormRequest
 {
     public function authorize(): bool
     {

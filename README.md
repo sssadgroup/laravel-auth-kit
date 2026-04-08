@@ -146,6 +146,11 @@ return [
 
     'password_rules' => ['min:8'],
 
+    'messages' => [
+        'default_locale' => 'en',
+        'supported_locales' => ['en', 'fr'],
+    ],
+
     'registration' => [
         'mode'         => 'self',   // 'self' | 'admin'  — mutuellement exclusifs
         'default_role' => 'user',
@@ -181,6 +186,74 @@ return [
         'update_other_user' => 'update-user',
     ],
 ];
+```
+
+## 🌍 Messages API bilingues
+
+Toutes les réponses textuelles du package sont maintenant bilingues anglais/français.
+
+- `message` ou `error` retourne la langue résolue
+- l'anglais est utilisé par défaut
+- `message_translations` ou `error_translations` expose les versions `en` et `fr`
+- les erreurs de validation des `FormRequest` suivent aussi ce fonctionnement
+- `errors` retourne les messages de validation dans la langue résolue
+- `errors_translations` expose les variantes `en` et `fr`
+
+Ordre de résolution de la langue :
+
+1. Header `X-Auth-Kit-Locale`
+2. Query string `?lang=fr`
+3. Header `Accept-Language`
+4. `config('auth-kit.messages.default_locale')`
+
+Exemple de réponse succès :
+
+```json
+{
+  "message": "Role 'manager' assigned to user #12.",
+  "locale": "en",
+  "message_translations": {
+    "en": "Role 'manager' assigned to user #12.",
+    "fr": "Rôle 'manager' assigné à l'utilisateur #12."
+  }
+}
+```
+
+Exemple pour forcer le français :
+
+```http
+POST /api/users/12/roles?lang=fr
+X-Auth-Kit-Locale: fr
+```
+
+Exemple de réponse de validation :
+
+```json
+{
+  "error": "Les donnees fournies sont invalides.",
+  "locale": "fr",
+  "error_translations": {
+    "en": "The given data was invalid.",
+    "fr": "Les donnees fournies sont invalides."
+  },
+  "errors": {
+    "email": [
+      "Le champ adresse e-mail est obligatoire."
+    ]
+  },
+  "errors_translations": {
+    "en": {
+      "email": [
+        "The email address field is required."
+      ]
+    },
+    "fr": {
+      "email": [
+        "Le champ adresse e-mail est obligatoire."
+      ]
+    }
+  }
+}
 ```
 
 ---

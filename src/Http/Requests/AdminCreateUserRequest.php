@@ -2,8 +2,6 @@
 
 namespace S3Tech\AuthKit\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validation de la création d'utilisateur par un admin (mode 'admin').
  *
@@ -17,7 +15,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *   - role        : rôle Spatie à assigner (optionnel — doit exister en base)
  *   - status      : statut du compte (optionnel — active|inactive|banned)
  */
-class AdminCreateUserRequest extends FormRequest
+class AdminCreateUserRequest extends AuthKitFormRequest
 {
     public function authorize(): bool
     {

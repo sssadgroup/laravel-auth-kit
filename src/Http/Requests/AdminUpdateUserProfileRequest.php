@@ -2,8 +2,6 @@
 
 namespace S3Tech\AuthKit\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validation de la mise à jour du profil d'un autre utilisateur par un admin.
  *
@@ -11,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *     Un admin ne peut pas modifier le mot de passe d'un autre utilisateur.
  *     Cette contrainte est appliquée ici ET dans le contrôleur (double sécurité).
  */
-class AdminUpdateUserProfileRequest extends FormRequest
+class AdminUpdateUserProfileRequest extends AuthKitFormRequest
 {
     public function authorize(): bool
     {
