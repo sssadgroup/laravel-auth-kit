@@ -13,6 +13,7 @@ use S3Tech\AuthKit\Http\Requests\AdminCreateUserRequest;
 use S3Tech\AuthKit\Http\Resources\UserResource;
 use S3Tech\AuthKit\Mail\TemporaryPasswordMail;
 use S3Tech\AuthKit\Services\ActivityLogService;
+use S3Tech\AuthKit\Support\ApiResponse;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -51,7 +52,7 @@ class AuthController extends Controller
             'last_name'  => $request->last_name,
             'email'      => $request->email,
             'password'   => Hash::make($request->password),
-            'phone'      => $request->phone, // optionnel — null si absent
+            'phone'      => $request->phone ?? null, // optionnel — null si absent
         ]);
 
         $this->assignDefaultRole($user);
@@ -63,8 +64,10 @@ class AuthController extends Controller
             'email' => $user->email,
         ]);
 
-        return response()->json([
-            'message' => 'Inscription réussie.',
+        return ApiResponse::success($request, [
+            'en' => 'Registration successful.',
+            'fr' => 'Inscription réussie.',
+        ], [
             'user'    => new UserResource($user),
             'token'   => $token,
         ], 201);
@@ -76,7 +79,7 @@ class AuthController extends Controller
      * Un utilisateur habilité (permission 'create-user') crée un compte.
      * Un mot de passe temporaire est généré et envoyé par email.
      *
-     * Body : { first_name, last_name, email, phone?, role? }
+     * Body : { first_name, last_name, email, phone?, role?, status? }
      * Requiert : permission 'create-user' (vérifié dans les routes)
      */
     public function adminCreateUser(AdminCreateUserRequest $request): JsonResponse
@@ -91,6 +94,7 @@ class AuthController extends Controller
             'email'                => $request->email,
             'password'             => Hash::make($temporaryPassword),
             'phone'                => $request->phone,
+            'status'               => $request->input('status', 'active'),
             'must_change_password' => true,
         ]);
 
@@ -107,8 +111,10 @@ class AuthController extends Controller
             'created_user_email' => $user->email,
         ]);
 
-        return response()->json([
-            'message' => 'Utilisateur créé. Un mot de passe temporaire a été envoyé par email.',
+        return ApiResponse::success($request, [
+            'en' => 'User created. A temporary password has been sent by email.',
+            'fr' => 'Utilisateur créé. Un mot de passe temporaire a été envoyé par email.',
+        ], [
             'user'    => new UserResource($user),
         ], 201);
     }
@@ -134,24 +140,39 @@ class AuthController extends Controller
                 'email' => $request->email,
             ]);
 
-            return response()->json(['message' => 'Identifiants invalides.'], 401);
+            return ApiResponse::error($request, [
+                'en' => 'Invalid credentials.',
+                'fr' => 'Identifiants invalides.',
+            ], [], 401);
         }
 
         // Vérifier que le compte est actif
         // Un compte 'inactive' ou 'banned' se voit refuser l'accès avec un message explicite
         if ($user->status !== 'active') {
             $messages = [
-                'inactive' => "Votre compte est désactivé. Contactez l'administrateur.",
-                'banned'   => "Votre compte a été suspendu. Contactez l'administrateur.",
+                'inactive' => [
+                    'en' => 'Your account is inactive. Please contact the administrator.',
+                    'fr' => "Votre compte est désactivé. Contactez l'administrateur.",
+                ],
+                'banned'   => [
+                    'en' => 'Your account has been suspended. Please contact the administrator.',
+                    'fr' => "Votre compte a été suspendu. Contactez l'administrateur.",
+                ],
             ];
 
             $this->logger->log($request, 'login_failed', $user->id, 'auth', $user, [
                 'reason' => "account_{$user->status}",
             ]);
 
-            return response()->json([
-                'message' => $messages[$user->status] ?? 'Compte non autorisé.',
-            ], 403);
+            return ApiResponse::error(
+                $request,
+                $messages[$user->status] ?? [
+                    'en' => 'Account not authorized.',
+                    'fr' => 'Compte non autorisé.',
+                ],
+                [],
+                403
+            );
         }
 
         $token = $user->createToken(config('auth-kit.token.name'))->plainTextToken;
@@ -159,8 +180,10 @@ class AuthController extends Controller
         // Log : action 'login', ressource = l'utilisateur lui-même
         $this->logger->log($request, 'login', $user->id, 'login', $user);
 
-        return response()->json([
-            'message' => 'Connexion réussie.',
+        return ApiResponse::success($request, [
+            'en' => 'Login successful.',
+            'fr' => 'Connexion réussie.',
+        ], [
             'user'    => new UserResource($user->load('roles', 'permissions')),
             'token'   => $token,
         ]);
@@ -202,11 +225,17 @@ class AuthController extends Controller
                 $token   = $user->tokens()->find($tokenId);
 
                 if (! $token) {
-                    return response()->json(['message' => 'Session introuvable.'], 404);
+                    return ApiResponse::error($request, [
+                        'en' => 'Session not found.',
+                        'fr' => 'Session introuvable.',
+                    ], [], 404);
                 }
 
                 if ($token->tokenable_id !== $user->id) {
-                    return response()->json(['message' => 'Action non autorisée.'], 403);
+                    return ApiResponse::error($request, [
+                        'en' => 'Unauthorized action.',
+                        'fr' => 'Action non autorisée.',
+                    ], [], 403);
                 }
 
                 $token->delete();
@@ -216,7 +245,10 @@ class AuthController extends Controller
                     'token_id' => $tokenId,
                 ]);
 
-                return response()->json(['message' => 'Session spécifique révoquée.']);
+                return ApiResponse::success($request, [
+                    'en' => 'Specific session revoked.',
+                    'fr' => 'Session spécifique révoquée.',
+                ]);
 
             case 'all':
                 $count = $user->tokens()->count();
@@ -227,8 +259,10 @@ class AuthController extends Controller
                     'sessions_closed' => $count,
                 ]);
 
-                return response()->json([
-                    'message'         => 'Toutes les sessions ont été révoquées.',
+                return ApiResponse::success($request, [
+                    'en' => 'All sessions have been revoked.',
+                    'fr' => 'Toutes les sessions ont été révoquées.',
+                ], [
                     'sessions_closed' => $count,
                 ]);
 
@@ -239,7 +273,10 @@ class AuthController extends Controller
                     'mode' => 'current',
                 ]);
 
-                return response()->json(['message' => 'Déconnecté avec succès.']);
+                return ApiResponse::success($request, [
+                    'en' => 'Logged out successfully.',
+                    'fr' => 'Déconnecté avec succès.',
+                ]);
         }
     }
 
@@ -261,7 +298,7 @@ class AuthController extends Controller
             ->tokens()
             ->orderByDesc('last_used_at')
             ->get()
-            ->map(fn ($token) => [
+            ->map(fn($token) => [
                 'id'           => $token->id,
                 'name'         => $token->name,
                 'last_used_at' => $token->last_used_at?->toISOString(),

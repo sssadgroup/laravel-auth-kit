@@ -11,6 +11,7 @@ use S3Tech\AuthKit\Http\Requests\UpdatePasswordRequest;
 use S3Tech\AuthKit\Http\Requests\AdminUpdateUserProfileRequest;
 use S3Tech\AuthKit\Http\Resources\UserResource;
 use S3Tech\AuthKit\Services\ActivityLogService;
+use S3Tech\AuthKit\Support\ApiResponse;
 
 /**
  * ProfileController
@@ -54,7 +55,10 @@ class ProfileController extends Controller
         $data = $this->filterEditableFields($request->validated());
 
         if (empty($data)) {
-            return response()->json(['message' => 'Aucun champ à mettre à jour.'], 422);
+            return ApiResponse::error($request, [
+                'en' => 'No fields to update.',
+                'fr' => 'Aucun champ à mettre à jour.',
+            ], [], 422);
         }
 
         $user->update($data);
@@ -63,8 +67,10 @@ class ProfileController extends Controller
             'updated_fields' => array_keys($data),
         ]);
 
-        return response()->json([
-            'message' => 'Profil mis à jour avec succès.',
+        return ApiResponse::success($request, [
+            'en' => 'Profile updated successfully.',
+            'fr' => 'Profil mis à jour avec succès.',
+        ], [
             'user'    => new UserResource($user->fresh()),
         ]);
     }
@@ -84,9 +90,14 @@ class ProfileController extends Controller
 
         // Vérifier que l'ancien mot de passe est correct
         if (! Hash::check($request->current_password, $user->password)) {
-            return response()->json([
-                'message' => 'Le mot de passe actuel est incorrect.',
-                'errors'  => ['current_password' => ['Le mot de passe actuel est incorrect.']],
+            return ApiResponse::error($request, [
+                'en' => 'The current password is incorrect.',
+                'fr' => 'Le mot de passe actuel est incorrect.',
+            ], [
+                'errors'  => ['current_password' => [[
+                    'en' => 'The current password is incorrect.',
+                    'fr' => 'Le mot de passe actuel est incorrect.',
+                ]]],
             ], 422);
         }
 
@@ -100,8 +111,9 @@ class ProfileController extends Controller
 
         $this->logger->log($request, 'password_changed', $user->id, 'update', $user);
 
-        return response()->json([
-            'message' => 'Mot de passe modifié. Veuillez vous reconnecter.',
+        return ApiResponse::success($request, [
+            'en' => 'Password updated. Please log in again.',
+            'fr' => 'Mot de passe modifié. Veuillez vous reconnecter.',
         ]);
     }
 
@@ -131,7 +143,10 @@ class ProfileController extends Controller
         $data = $this->filterEditableFields($request->validated());
 
         if (empty($data)) {
-            return response()->json(['message' => 'Aucun champ à mettre à jour.'], 422);
+            return ApiResponse::error($request, [
+                'en' => 'No fields to update.',
+                'fr' => 'Aucun champ à mettre à jour.',
+            ], [], 422);
         }
 
         $targetUser->update($data);
@@ -140,8 +155,10 @@ class ProfileController extends Controller
             'updated_fields' => array_keys($data),
         ]);
 
-        return response()->json([
-            'message' => 'Profil utilisateur mis à jour.',
+        return ApiResponse::success($request, [
+            'en' => 'User profile updated.',
+            'fr' => 'Profil utilisateur mis à jour.',
+        ], [
             'user'    => new UserResource($targetUser->fresh()),
         ]);
     }

@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use S3Tech\AuthKit\Services\ActivityLogService;
+use S3Tech\AuthKit\Support\ApiResponse;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -58,8 +59,10 @@ class RolePermissionController extends Controller
             'role_name' => $role->name,
         ]);
 
-        return response()->json([
-            'message' => "Rôle '{$role->name}' créé.",
+        return ApiResponse::success($request, [
+            'en' => "Role '{$role->name}' created.",
+            'fr' => "Rôle '{$role->name}' créé.",
+        ], [
             'role' => $role,
         ], 201);
     }
@@ -83,14 +86,16 @@ class RolePermissionController extends Controller
             'name' => $request->name,
         ]);
 
-        $this->logger->log($request, 'role_updated', $request->user()->id, 'update', null, [
+        $this->logger->log($request, 'role_updated', $request->user()->id, 'update', $role, [
             'action' => 'role_updated',
             'old_name' => $oldName,
             'new_name' => $role->name,
         ]);
 
-        return response()->json([
-            'message' => "Rôle '{$oldName}' modifié en '{$role->name}'.",
+        return ApiResponse::success($request, [
+            'en' => "Role '{$oldName}' renamed to '{$role->name}'.",
+            'fr' => "Rôle '{$oldName}' modifié en '{$role->name}'.",
+        ], [
             'role' => $role,
         ]);
     }
@@ -102,15 +107,28 @@ class RolePermissionController extends Controller
     public function deleteRole(Request $request, $roleId): JsonResponse
     {
         $role = Role::findOrFail($roleId);
+
+        if ($role->users()->exists()) {
+            return ApiResponse::error($request, [
+                'en' => "Deletion not allowed: role '{$role->name}' is still assigned to at least one user.",
+                'fr' => "Suppression impossible: le rôle '{$role->name}' est encore assigné à au moins un utilisateur.",
+            ], [
+                'code' => 422,
+            ], 422);
+        }
+
         $roleName = $role->name;
         $role->delete();
 
-        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
+        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', $role, [
             'action' => 'role_deleted',
             'role_name' => $roleName,
         ]);
 
-        return response()->json(['message' => "Rôle '{$roleName}' supprimé."]);
+        return ApiResponse::success($request, [
+            'en' => "Role '{$roleName}' deleted.",
+            'fr' => "Rôle '{$roleName}' supprimé.",
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -142,8 +160,10 @@ class RolePermissionController extends Controller
             'guard_name' => 'sanctum',
         ]);
 
-        return response()->json([
-            'message' => "Permission '{$permission->name}' créée.",
+        return ApiResponse::success($request, [
+            'en' => "Permission '{$permission->name}' created.",
+            'fr' => "Permission '{$permission->name}' créée.",
+        ], [
             'permission' => $permission,
         ], 201);
     }
@@ -164,11 +184,21 @@ class RolePermissionController extends Controller
         ]);
 
         $role = Role::findOrFail($roleId);
+        $permission = Permission::where('name', $request->permission)
+            ->where('guard_name', $role->guard_name)
+            ->firstOrFail();
 
         $role->givePermissionTo($request->permission);
 
-        return response()->json([
-            'message' => "Permission '{$request->permission}' assignée au rôle '{$role->fresh()->name}'.",
+        $this->logger->log($request, 'permission_assigned', $request->user()->id, 'create', $permission, [
+            'action' => 'permission_assigned_to_role',
+            'role_name' => $role->name,
+            'permission' => $request->permission,
+        ]);
+
+        return ApiResponse::success($request, [
+            'en' => "Permission '{$request->permission}' assigned to role '{$role->fresh()->name}'.",
+            'fr' => "Permission '{$request->permission}' assignée au rôle '{$role->fresh()->name}'.",
         ]);
     }
 
@@ -178,12 +208,31 @@ class RolePermissionController extends Controller
      */
     public function revokePermissionFromRole(Request $request, $roleId, string $perm): JsonResponse
     {
-
         $role = Role::findOrFail($roleId);
+        $permission = Permission::where('name', $perm)
+            ->where('guard_name', $role->guard_name)
+            ->first();
+
+        if (! $permission) {
+            return ApiResponse::error($request, [
+                'en' => "Permission '{$perm}' does not exist.",
+                'fr' => "La permission '{$perm}' n'existe pas.",
+            ], [
+                'code' => 404,
+            ], 404);
+        }
+
         $role->revokePermissionTo($perm);
 
-        return response()->json([
-            'message' => "Permission '{$perm}' révoquée du rôle '{$role->name}'.",
+        $this->logger->log($request, 'permission_revoked', $request->user()->id, 'delete', $permission, [
+            'action' => 'permission_revoked_from_role',
+            'role_name' => $role->name,
+            'permission' => $perm,
+        ]);
+
+        return ApiResponse::success($request, [
+            'en' => "Permission '{$perm}' revoked from role '{$role->name}'.",
+            'fr' => "Permission '{$perm}' révoquée du rôle '{$role->name}'.",
         ]);
     }
 
@@ -204,16 +253,26 @@ class RolePermissionController extends Controller
 
         $userModel = config('auth-kit.user_model');
         $user = $userModel::findOrFail($userId);
+        $role = Role::where('name', $request->role)->where('guard_name', 'sanctum')->firstOrFail();
 
-        $user->assignRole($request->role);
+        if ($user->hasRole($role->name)) {
+            return ApiResponse::success($request, [
+                'en' => "User #{$user->id} already has role '{$role->name}'.",
+                'fr' => "L'utilisateur #{$user->id} possède déjà le rôle '{$role->name}'.",
+            ]);
+        }
 
-        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', null, [
+        $user->assignRole($role->name);
+
+        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', $role, [
+            'action' => 'role_assigned_to_user',
             'target_user_id' => $user->id,
-            'role' => $request->role,
+            'role' => $role->name,
         ]);
 
-        return response()->json([
-            'message' => "Rôle '{$request->role}' assigné à l'utilisateur #{$user->id}.",
+        return ApiResponse::success($request, [
+            'en' => "Role '{$role->name}' assigned to user #{$user->id}.",
+            'fr' => "Rôle '{$role->name}' assigné à l'utilisateur #{$user->id}.",
         ]);
     }
 
@@ -225,16 +284,35 @@ class RolePermissionController extends Controller
     {
         $userModel = config('auth-kit.user_model');
         $user = $userModel::findOrFail($userId);
+        $roleModel = Role::where('name', $role)->where('guard_name', 'sanctum')->first();
 
-        $user->removeRole($role);
+        if (! $roleModel) {
+            return ApiResponse::error($request, [
+                'en' => "Role '{$role}' does not exist.",
+                'fr' => "Le rôle '{$role}' n'existe pas.",
+            ], [
+                'code' => 404,
+            ], 404);
+        }
 
-        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
+        if (! $user->hasRole($roleModel->name)) {
+            return ApiResponse::success($request, [
+                'en' => "User #{$user->id} does not have role '{$roleModel->name}'.",
+                'fr' => "L'utilisateur #{$user->id} ne possède pas le rôle '{$roleModel->name}'.",
+            ]);
+        }
+
+        $user->removeRole($roleModel->name);
+
+        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', $roleModel, [
+            'action' => 'role_revoked_from_user',
             'target_user_id' => $user->id,
-            'role' => $role,
+            'role' => $roleModel->name,
         ]);
 
-        return response()->json([
-            'message' => "Rôle '{$role}' révoqué de l'utilisateur #{$user->id}.",
+        return ApiResponse::success($request, [
+            'en' => "Role '{$roleModel->name}' revoked from user #{$user->id}.",
+            'fr' => "Rôle '{$roleModel->name}' révoqué de l'utilisateur #{$user->id}.",
         ]);
     }
 
@@ -254,22 +332,29 @@ class RolePermissionController extends Controller
 
         // Éviter le doublon si déjà assignée
         if ($user->hasDirectPermission($request->permission)) {
-            return response()->json([
-                'error' => "L'utilisateur possède déjà la permission '{$request->permission}'.",
+            return ApiResponse::error($request, [
+                'en' => "User already has permission '{$request->permission}'.",
+                'fr' => "L'utilisateur possède déjà la permission '{$request->permission}'.",
+            ], [
                 'code' => 422,
             ], 422);
         }
 
         $user->givePermissionTo($request->permission);
 
-        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', null, [
+        $permission = Permission::where('name', $request->permission)
+            ->where('guard_name', 'sanctum')
+            ->firstOrFail();
+
+        $this->logger->log($request, 'role_assigned', $request->user()->id, 'create', $permission, [
             'action' => 'permission_assigned_to_user',
             'target_user_id' => $user->id,
             'permission' => $request->permission,
         ]);
 
-        return response()->json([
-            'message' => "Permission '{$request->permission}' assignée à l'utilisateur #{$user->id}.",
+        return ApiResponse::success($request, [
+            'en' => "Permission '{$request->permission}' assigned to user #{$user->id}.",
+            'fr' => "Permission '{$request->permission}' assignée à l'utilisateur #{$user->id}.",
         ]);
     }
 
@@ -284,30 +369,39 @@ class RolePermissionController extends Controller
 
         // Vérifier que la permission existe
         if (! Permission::where('name', $permission)->where('guard_name', 'sanctum')->exists()) {
-            return response()->json([
-                'error' => "La permission '{$permission}' n'existe pas.",
+            return ApiResponse::error($request, [
+                'en' => "Permission '{$permission}' does not exist.",
+                'fr' => "La permission '{$permission}' n'existe pas.",
+            ], [
                 'code' => 404,
             ], 404);
         }
 
         // Vérifier qu'elle est bien assignée directement
         if (! $user->hasDirectPermission($permission)) {
-            return response()->json([
-                'error' => "L'utilisateur ne possède pas la permission directe '{$permission}'.",
+            return ApiResponse::error($request, [
+                'en' => "User does not have direct permission '{$permission}'.",
+                'fr' => "L'utilisateur ne possède pas la permission directe '{$permission}'.",
+            ], [
                 'code' => 422,
             ], 422);
         }
 
         $user->revokePermissionTo($permission);
 
-        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', null, [
+        $permissionModel = Permission::where('name', $permission)
+            ->where('guard_name', 'sanctum')
+            ->firstOrFail();
+
+        $this->logger->log($request, 'role_revoked', $request->user()->id, 'delete', $permissionModel, [
             'action' => 'permission_revoked_from_user',
             'target_user_id' => $user->id,
             'permission' => $permission,
         ]);
 
-        return response()->json([
-            'message' => "Permission '{$permission}' révoquée de l'utilisateur #{$user->id}.",
+        return ApiResponse::success($request, [
+            'en' => "Permission '{$permission}' revoked from user #{$user->id}.",
+            'fr' => "Permission '{$permission}' révoquée de l'utilisateur #{$user->id}.",
         ]);
     }
 }

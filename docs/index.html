@@ -1,297 +1,1209 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr" data-theme="dark" dir="ltr">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Laravel Auth Kit — S3Tech Group</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:wght@300;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root{--r:10px;--rl:16px;--t:.2s cubic-bezier(.4,0,.2,1);--accent:#00d4a0;--accent2:#0096ff;--danger:#ff5c5c;--warn:#f5a623}
-[data-theme=dark]{--bg:#080d12;--bg2:#0e1620;--bg3:#16202e;--bg4:#1c2a3a;--bdr:rgba(255,255,255,.07);--bdr2:rgba(0,212,160,.18);--txt:#e8eef4;--txt2:#7a9ab5;--txt3:#3d5a73;--cbg:#060b10;--cstr:#5de5b4;--ckey:#6ab4ff;--cnum:#f5a623;--ccmt:#3d5a73;--nav:rgba(8,13,18,.93);--pill:rgba(0,212,160,.1);--sh:0 8px 40px rgba(0,0,0,.6);--glow:0 0 40px rgba(0,212,160,.07)}
-[data-theme=light]{--bg:#f4f7fb;--bg2:#fff;--bg3:#edf1f7;--bg4:#e2e9f2;--bdr:rgba(0,0,0,.08);--bdr2:rgba(0,150,100,.2);--txt:#1a2535;--txt2:#4a6580;--txt3:#9ab0c4;--cbg:#1a2535;--cstr:#2ec993;--ckey:#4a9eff;--cnum:#e8930a;--ccmt:#556b82;--nav:rgba(244,247,251,.94);--pill:rgba(0,160,100,.1);--sh:0 4px 20px rgba(0,0,0,.1);--glow:none}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.7;transition:background var(--t),color var(--t);min-height:100vh}
-[lang=ar] body,[dir=rtl] body{font-family:'DM Sans',sans-serif}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laravel Auth Kit — S3Tech Group</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:wght@300;600;700&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --r: 10px;
+        --rl: 16px;
+        --t: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --accent: #00d4a0;
+        --accent2: #0096ff;
+        --danger: #ff5c5c;
+        --warn: #f5a623;
+      }
+      [data-theme="dark"] {
+        --bg: #080d12;
+        --bg2: #0e1620;
+        --bg3: #16202e;
+        --bg4: #1c2a3a;
+        --bdr: rgba(255, 255, 255, 0.07);
+        --bdr2: rgba(0, 212, 160, 0.18);
+        --txt: #e8eef4;
+        --txt2: #7a9ab5;
+        --txt3: #3d5a73;
+        --cbg: #060b10;
+        --code-txt: #e8eef4;
+        --cstr: #5de5b4;
+        --ckey: #6ab4ff;
+        --cnum: #f5a623;
+        --ccmt: #3d5a73;
+        --cvar: #e0b0ff;
+        --nav: rgba(8, 13, 18, 0.93);
+        --pill: rgba(0, 212, 160, 0.1);
+        --sh: 0 8px 40px rgba(0, 0, 0, 0.6);
+        --glow: 0 0 40px rgba(0, 212, 160, 0.07);
+      }
+      [data-theme="light"] {
+        --bg: #f4f7fb;
+        --bg2: #fff;
+        --bg3: #edf1f7;
+        --bg4: #e2e9f2;
+        --bdr: rgba(0, 0, 0, 0.08);
+        --bdr2: rgba(0, 150, 100, 0.2);
+        --txt: #1a2535;
+        --txt2: #4a6580;
+        --txt3: #9ab0c4;
+        --cbg: #1a2535;
+        --code-txt: #eef4fb;
+        --cstr: #4fe0ad;
+        --ckey: #7ab8ff;
+        --cnum: #ffbf47;
+        --ccmt: #8eabc9;
+        --cvar: #d9b8ff;
+        --nav: rgba(244, 247, 251, 0.94);
+        --pill: rgba(0, 160, 100, 0.1);
+        --sh: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --glow: none;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--bg);
+        color: var(--txt);
+        font-size: 15px;
+        line-height: 1.7;
+        transition:
+          background var(--t),
+          color var(--t);
+        min-height: 100vh;
+      }
+      [lang="ar"] body,
+      [dir="rtl"] body {
+        font-family: "DM Sans", sans-serif;
+      }
 
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--nav);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--bdr);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;transition:background var(--t)}
-.nav-left{display:flex;align-items:center;gap:12px}
-.nav-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#000;font-family:'JetBrains Mono',monospace;letter-spacing:-.03em;flex-shrink:0}
-.nav-brand{font-family:'Fraunces',serif;font-weight:700;font-size:1.05rem;color:var(--txt);text-decoration:none}
-.nav-right{display:flex;align-items:center;gap:8px}
-.badge-v{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);border:1px solid var(--bdr2);background:var(--pill);padding:3px 9px;border-radius:20px}
+      /* NAV */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+        background: var(--nav);
+        backdrop-filter: blur(18px) saturate(180%);
+        border-bottom: 1px solid var(--bdr);
+        padding: 0 1.5rem;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: background var(--t);
+      }
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .nav-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #000;
+        font-family: "JetBrains Mono", monospace;
+        letter-spacing: -0.03em;
+        flex-shrink: 0;
+      }
+      .nav-brand {
+        font-family: "Fraunces", serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--txt);
+        text-decoration: none;
+      }
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .badge-v {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--accent);
+        border: 1px solid var(--bdr2);
+        background: var(--pill);
+        padding: 3px 9px;
+        border-radius: 20px;
+      }
 
-/* LANG SELECTOR */
-.lang-select{position:relative}
-.lang-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--bg3);cursor:pointer;font-size:.8rem;color:var(--txt2);transition:all var(--t);white-space:nowrap}
-.lang-btn:hover{background:var(--bg4);color:var(--txt)}
-.lang-btn .flag{font-size:.95rem}
-.lang-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;min-width:170px;box-shadow:var(--sh);z-index:300;display:none;animation:fadeDown .15s ease}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.lang-select.open .lang-dropdown{display:block}
-.lang-option{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:.82rem;color:var(--txt2);cursor:pointer;transition:all var(--t)}
-.lang-option:hover{background:var(--bg3);color:var(--txt)}
-.lang-option.active{color:var(--accent);background:var(--pill)}
-.lang-option .flag{font-size:1rem}
+      /* LANG SELECTOR */
+      .lang-select {
+        position: relative;
+      }
+      .lang-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: var(--r);
+        border: 1px solid var(--bdr);
+        background: var(--bg3);
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: var(--txt2);
+        transition: all var(--t);
+        white-space: nowrap;
+      }
+      .lang-btn:hover {
+        background: var(--bg4);
+        color: var(--txt);
+      }
+      .lang-btn .flag {
+        font-size: 0.95rem;
+      }
+      .lang-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: var(--bg2);
+        border: 1px solid var(--bdr);
+        border-radius: var(--r);
+        overflow: hidden;
+        min-width: 170px;
+        box-shadow: var(--sh);
+        z-index: 300;
+        display: none;
+        animation: fadeDown 0.15s ease;
+      }
+      @keyframes fadeDown {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .lang-select.open .lang-dropdown {
+        display: block;
+      }
+      .lang-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        color: var(--txt2);
+        cursor: pointer;
+        transition: all var(--t);
+      }
+      .lang-option:hover {
+        background: var(--bg3);
+        color: var(--txt);
+      }
+      .lang-option.active {
+        color: var(--accent);
+        background: var(--pill);
+      }
+      .lang-option .flag {
+        font-size: 1rem;
+      }
 
-/* THEME BTN */
-.theme-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--bdr);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all var(--t);color:var(--txt2)}
-.theme-btn:hover{background:var(--bg4);color:var(--txt)}
+      /* THEME BTN */
+      .theme-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--bdr);
+        background: var(--bg3);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: all var(--t);
+        color: var(--txt2);
+      }
+      .theme-btn:hover {
+        background: var(--bg4);
+        color: var(--txt);
+      }
 
-/* SIDEBAR */
-.layout{display:flex;padding-top:60px;min-height:100vh}
-.sidebar{position:fixed;top:60px;left:0;bottom:0;width:240px;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--bdr);padding:1.5rem 0;transition:background var(--t)}
-.sidebar::-webkit-scrollbar{width:3px}
-.sidebar::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
-.sb-section{padding:0 1rem .4rem;font-size:.63rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--txt3);margin-top:1.2rem}
-.sidebar a{display:block;padding:6px 1.2rem;font-size:.82rem;color:var(--txt2);text-decoration:none;border-left:2px solid transparent;transition:all var(--t);line-height:1.4}
-.sidebar a:hover{color:var(--txt);background:var(--bg3);border-left-color:var(--bdr2)}
-.sidebar a.active{color:var(--accent);border-left-color:var(--accent);background:var(--pill)}
-[dir=rtl] .sidebar{left:auto;right:0;border-right:none;border-left:1px solid var(--bdr)}
-[dir=rtl] .sidebar a{border-left:none;border-right:2px solid transparent}
-[dir=rtl] .sidebar a:hover,[dir=rtl] .sidebar a.active{border-right-color:var(--accent)}
+      /* SIDEBAR */
+      .layout {
+        display: flex;
+        padding-top: 60px;
+        min-height: 100vh;
+      }
+      .sidebar {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        bottom: 0;
+        width: 240px;
+        overflow-y: auto;
+        background: var(--bg2);
+        border-right: 1px solid var(--bdr);
+        padding: 1.5rem 0;
+        transition: background var(--t);
+      }
+      .sidebar::-webkit-scrollbar {
+        width: 3px;
+      }
+      .sidebar::-webkit-scrollbar-thumb {
+        background: var(--bg4);
+        border-radius: 2px;
+      }
+      .sb-section {
+        padding: 0 1rem 0.4rem;
+        font-size: 0.63rem;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--txt3);
+        margin-top: 1.2rem;
+      }
+      .sidebar a {
+        display: block;
+        padding: 6px 1.2rem;
+        font-size: 0.82rem;
+        color: var(--txt2);
+        text-decoration: none;
+        border-left: 2px solid transparent;
+        transition: all var(--t);
+        line-height: 1.4;
+      }
+      .sidebar a:hover {
+        color: var(--txt);
+        background: var(--bg3);
+        border-left-color: var(--bdr2);
+      }
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: var(--pill);
+      }
+      [dir="rtl"] .sidebar {
+        left: auto;
+        right: 0;
+        border-right: none;
+        border-left: 1px solid var(--bdr);
+      }
+      [dir="rtl"] .sidebar a {
+        border-left: none;
+        border-right: 2px solid transparent;
+      }
+      [dir="rtl"] .sidebar a:hover,
+      [dir="rtl"] .sidebar a.active {
+        border-right-color: var(--accent);
+      }
 
-/* CONTENT */
-.content{margin-left:240px;flex:1;max-width:900px;padding:3.5rem 3rem 6rem;animation:fadeIn .45s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-[dir=rtl] .content{margin-left:0;margin-right:240px}
+      /* CONTENT */
+      .content {
+        margin-left: 240px;
+        flex: 1;
+        max-width: 900px;
+        padding: 3.5rem 3rem 6rem;
+        animation: fadeIn 0.45s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      [dir="rtl"] .content {
+        margin-left: 0;
+        margin-right: 240px;
+      }
 
-/* HERO */
-.hero{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);padding:3rem;margin-bottom:3rem;position:relative;overflow:hidden;box-shadow:var(--glow)}
-.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,160,.07) 0%,transparent 70%);pointer-events:none}
-[dir=rtl] .hero::before{right:auto;left:-60px}
-.hero-label{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent);border:1px solid var(--bdr2);background:var(--pill);padding:4px 12px;border-radius:20px;margin-bottom:1.2rem}
-.hero-label::before{content:'●';font-size:.5rem}
-.hero h1{font-family:'Fraunces',serif;font-size:2.5rem;font-weight:700;line-height:1.15;margin-bottom:.7rem;background:linear-gradient(135deg,var(--txt) 0%,var(--txt2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero p{color:var(--txt2);font-size:1rem;line-height:1.65;max-width:560px;font-weight:300}
-.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:1.5rem}
-.tag{font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:4px 10px;border-radius:20px;border:1px solid var(--bdr);color:var(--txt2);background:var(--bg3)}
+      /* HERO */
+      .hero {
+        background: var(--bg2);
+        border: 1px solid var(--bdr);
+        border-radius: var(--rl);
+        padding: 3rem;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--glow);
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(0, 212, 160, 0.07) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+      [dir="rtl"] .hero::before {
+        right: auto;
+        left: -60px;
+      }
+      .hero-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        color: var(--accent);
+        border: 1px solid var(--bdr2);
+        background: var(--pill);
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-label::before {
+        content: "●";
+        font-size: 0.5rem;
+      }
+      .hero h1 {
+        font-family: "Fraunces", serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 0.7rem;
+        background: linear-gradient(135deg, var(--txt) 0%, var(--txt2) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero p {
+        color: var(--txt2);
+        font-size: 1rem;
+        line-height: 1.65;
+        max-width: 560px;
+        font-weight: 300;
+      }
+      .hero-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 1.5rem;
+      }
+      .tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid var(--bdr);
+        color: var(--txt2);
+        background: var(--bg3);
+      }
 
-/* SECTIONS */
-section{margin-bottom:4rem;scroll-margin-top:80px}
-h2{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:600;margin-bottom:1.2rem;padding-bottom:.7rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:.6rem}
-h2 .icon{font-size:1.1rem;opacity:.8}
-h3{font-size:1rem;font-weight:500;color:var(--txt);margin:1.8rem 0 .7rem}
-p{color:var(--txt2);margin-bottom:.8rem;font-weight:300}
+      /* SECTIONS */
+      section {
+        margin-bottom: 4rem;
+        scroll-margin-top: 80px;
+      }
+      h2 {
+        font-family: "Fraunces", serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.7rem;
+        border-bottom: 1px solid var(--bdr);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      h2 .icon {
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+      h3 {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--txt);
+        margin: 1.8rem 0 0.7rem;
+      }
+      p {
+        color: var(--txt2);
+        margin-bottom: 0.8rem;
+        font-weight: 300;
+      }
 
-/* FEATURES GRID */
-.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-bottom:1rem}
-.feat-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:1.2rem 1.4rem;transition:all var(--t)}
-.feat-card:hover{border-color:var(--bdr2);transform:translateY(-2px);box-shadow:var(--sh)}
-.feat-icon{font-size:1.4rem;margin-bottom:.5rem}
-.feat-title{font-weight:500;font-size:.9rem;margin-bottom:.25rem;color:var(--txt)}
-.feat-desc{font-size:.8rem;color:var(--txt2);font-weight:300}
+      /* FEATURES GRID */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+      }
+      .feat-card {
+        background: var(--bg2);
+        border: 1px solid var(--bdr);
+        border-radius: var(--r);
+        padding: 1.2rem 1.4rem;
+        transition: all var(--t);
+      }
+      .feat-card:hover {
+        border-color: var(--bdr2);
+        transform: translateY(-2px);
+        box-shadow: var(--sh);
+      }
+      .feat-icon {
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+      }
+      .feat-title {
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+        color: var(--txt);
+      }
+      .feat-desc {
+        font-size: 0.8rem;
+        color: var(--txt2);
+        font-weight: 300;
+      }
 
-/* STEPS */
-.steps{counter-reset:step}
-.step{display:flex;gap:1.2rem;margin-bottom:1.6rem;counter-increment:step}
-.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--bdr2);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center}
-.step-num::after{content:counter(step)}
-.step-body{flex:1}
-.step-title{font-weight:500;margin-bottom:.4rem;color:var(--txt);font-size:.95rem}
+      /* STEPS */
+      .steps {
+        counter-reset: step;
+      }
+      .step {
+        display: flex;
+        gap: 1.2rem;
+        margin-bottom: 1.6rem;
+        counter-increment: step;
+      }
+      .step-num {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--bg3);
+        border: 1px solid var(--bdr2);
+        color: var(--accent);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .step-num::after {
+        content: counter(step);
+      }
+      .step-body {
+        flex: 1;
+      }
+      .step-title {
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+        color: var(--txt);
+        font-size: 0.95rem;
+      }
 
-/* CODE */
-.code-block{background:var(--cbg);border:1px solid var(--bdr);border-radius:var(--r);margin:.8rem 0 1.2rem;overflow:hidden}
-.code-header{display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;background:var(--bg3);border-bottom:1px solid var(--bdr)}
-.code-lang{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--txt3);display:flex;align-items:center;gap:6px}
-.code-lang::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:.6}
-.copy-btn{font-size:.7rem;color:var(--txt3);background:none;border:none;cursor:pointer;padding:2px 8px;border-radius:4px;transition:all var(--t);font-family:'JetBrains Mono',monospace}
-.copy-btn:hover{color:var(--accent);background:var(--pill)}
-pre{padding:1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.75;font-family:'JetBrains Mono',monospace;color:var(--txt)}
-pre::-webkit-scrollbar{height:4px}
-pre::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
-.k{color:var(--ckey)}.s{color:var(--cstr)}.n{color:var(--cnum)}.c{color:var(--ccmt);font-style:italic}.v{color:#e0b0ff}
-code{font-family:'JetBrains Mono',monospace;font-size:.82em;color:var(--accent);background:var(--pill);padding:2px 6px;border-radius:4px;border:1px solid var(--bdr2)}
+      /* CODE */
+      .code-block {
+        background: var(--cbg);
+        border: 1px solid var(--bdr);
+        border-radius: var(--r);
+        margin: 0.8rem 0 1.2rem;
+        overflow: hidden;
+      }
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.55rem 1rem;
+        background: var(--bg3);
+        border-bottom: 1px solid var(--bdr);
+      }
+      .code-lang {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--txt3);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .code-lang::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        opacity: 0.6;
+      }
+      .copy-btn {
+        font-size: 0.7rem;
+        color: var(--txt3);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 2px 8px;
+        border-radius: 4px;
+        transition: all var(--t);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .copy-btn:hover {
+        color: var(--accent);
+        background: var(--pill);
+      }
+      pre {
+        padding: 1.2rem;
+        overflow-x: auto;
+        font-size: 0.82rem;
+        line-height: 1.75;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--code-txt);
+      }
+      pre::-webkit-scrollbar {
+        height: 4px;
+      }
+      pre::-webkit-scrollbar-thumb {
+        background: var(--bg4);
+        border-radius: 2px;
+      }
+      .k {
+        color: var(--ckey);
+      }
+      .s {
+        color: var(--cstr);
+      }
+      .n {
+        color: var(--cnum);
+      }
+      .c {
+        color: var(--ccmt);
+        font-style: italic;
+      }
+      .v {
+        color: var(--cvar);
+      }
+      code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.82em;
+        color: var(--accent);
+        background: var(--pill);
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid var(--bdr2);
+      }
 
-/* TABLES */
-.table-wrap{overflow-x:auto;margin:.8rem 0 1.4rem;border-radius:var(--r);border:1px solid var(--bdr)}
-table{width:100%;border-collapse:collapse;font-size:.84rem}
-thead tr{background:var(--bg3)}
-th{padding:.7rem 1rem;text-align:left;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:500;letter-spacing:.06em;color:var(--txt3);text-transform:uppercase;border-bottom:1px solid var(--bdr)}
-td{padding:.65rem 1rem;border-bottom:1px solid var(--bdr);color:var(--txt2);vertical-align:top}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg3)}
-[dir=rtl] th,[dir=rtl] td{text-align:right}
-.method{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block}
-.get{background:rgba(0,150,255,.15);color:#4da8ff;border:1px solid rgba(0,150,255,.2)}
-.post{background:rgba(0,212,160,.12);color:#00d4a0;border:1px solid rgba(0,212,160,.2)}
-.put{background:rgba(245,166,35,.12);color:#f5a623;border:1px solid rgba(245,166,35,.2)}
-.delete{background:rgba(255,92,92,.12);color:#ff5c5c;border:1px solid rgba(255,92,92,.2)}
-td code{font-size:.75em}
+      /* TABLES */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 0.8rem 0 1.4rem;
+        border-radius: var(--r);
+        border: 1px solid var(--bdr);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+      }
+      thead tr {
+        background: var(--bg3);
+      }
+      th {
+        padding: 0.7rem 1rem;
+        text-align: left;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        color: var(--txt3);
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--bdr);
+      }
+      td {
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--bdr);
+        color: var(--txt2);
+        vertical-align: top;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover td {
+        background: var(--bg3);
+      }
+      [dir="rtl"] th,
+      [dir="rtl"] td {
+        text-align: right;
+      }
+      .method {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 4px;
+        display: inline-block;
+      }
+      .get {
+        background: rgba(0, 150, 255, 0.15);
+        color: #4da8ff;
+        border: 1px solid rgba(0, 150, 255, 0.2);
+      }
+      .post {
+        background: rgba(0, 212, 160, 0.12);
+        color: #00d4a0;
+        border: 1px solid rgba(0, 212, 160, 0.2);
+      }
+      .put {
+        background: rgba(245, 166, 35, 0.12);
+        color: #f5a623;
+        border: 1px solid rgba(245, 166, 35, 0.2);
+      }
+      .delete {
+        background: rgba(255, 92, 92, 0.12);
+        color: #ff5c5c;
+        border: 1px solid rgba(255, 92, 92, 0.2);
+      }
+      td code {
+        font-size: 0.75em;
+      }
 
-/* CALLOUTS */
-.callout{display:flex;gap:.8rem;padding:1rem 1.2rem;border-radius:var(--r);margin:1rem 0;font-size:.87rem;border:1px solid}
-.callout-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
-.callout-warn{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.25);color:var(--txt2)}
-.callout-warn .callout-icon{color:var(--warn)}
-.callout-info{background:rgba(0,150,255,.06);border-color:rgba(0,150,255,.2);color:var(--txt2)}
-.callout-info .callout-icon{color:var(--accent2)}
-.callout-ok{background:rgba(0,212,160,.06);border-color:rgba(0,212,160,.2);color:var(--txt2)}
-.callout-ok .callout-icon{color:var(--accent)}
+      /* CALLOUTS */
+      .callout {
+        display: flex;
+        gap: 0.8rem;
+        padding: 1rem 1.2rem;
+        border-radius: var(--r);
+        margin: 1rem 0;
+        font-size: 0.87rem;
+        border: 1px solid;
+      }
+      .callout-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .callout-warn {
+        background: rgba(245, 166, 35, 0.06);
+        border-color: rgba(245, 166, 35, 0.25);
+        color: var(--txt2);
+      }
+      .callout-warn .callout-icon {
+        color: var(--warn);
+      }
+      .callout-info {
+        background: rgba(0, 150, 255, 0.06);
+        border-color: rgba(0, 150, 255, 0.2);
+        color: var(--txt2);
+      }
+      .callout-info .callout-icon {
+        color: var(--accent2);
+      }
+      .callout-ok {
+        background: rgba(0, 212, 160, 0.06);
+        border-color: rgba(0, 212, 160, 0.2);
+        color: var(--txt2);
+      }
+      .callout-ok .callout-icon {
+        color: var(--accent);
+      }
 
-/* SCHEMA */
-.schema-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin:1rem 0}
-.schema-table{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
-.schema-table-header{background:var(--bg3);padding:.6rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:600;color:var(--accent);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:6px}
-.schema-table-header::before{content:'▤';opacity:.6}
-.schema-row{display:flex;justify-content:space-between;align-items:center;padding:.38rem 1rem;border-bottom:1px solid var(--bdr);font-size:.78rem}
-.schema-row:last-child{border-bottom:none}
-.col-name{font-family:'JetBrains Mono',monospace;color:var(--txt)}
-.col-type{color:var(--txt3);font-size:.72rem}
-.col-key{font-size:.6rem;color:var(--cnum);background:rgba(245,166,35,.1);padding:1px 5px;border-radius:3px}
+      /* SCHEMA */
+      .schema-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .schema-table {
+        background: var(--bg2);
+        border: 1px solid var(--bdr);
+        border-radius: var(--r);
+        overflow: hidden;
+      }
+      .schema-table-header {
+        background: var(--bg3);
+        padding: 0.6rem 1rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--accent);
+        border-bottom: 1px solid var(--bdr);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .schema-table-header::before {
+        content: "▤";
+        opacity: 0.6;
+      }
+      .schema-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.38rem 1rem;
+        border-bottom: 1px solid var(--bdr);
+        font-size: 0.78rem;
+      }
+      .schema-row:last-child {
+        border-bottom: none;
+      }
+      .col-name {
+        font-family: "JetBrains Mono", monospace;
+        color: var(--txt);
+      }
+      .col-type {
+        color: var(--txt3);
+        font-size: 0.72rem;
+      }
+      .col-key {
+        font-size: 0.6rem;
+        color: var(--cnum);
+        background: rgba(245, 166, 35, 0.1);
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
 
-/* TABS */
-.tabs{margin:1rem 0}
-.tab-list{display:flex;gap:2px;margin-bottom:-1px;flex-wrap:wrap}
-.tab-btn{font-family:'JetBrains Mono',monospace;font-size:.76rem;padding:7px 14px;background:var(--bg3);border:1px solid var(--bdr);border-bottom:none;border-radius:6px 6px 0 0;cursor:pointer;color:var(--txt2);transition:all var(--t)}
-.tab-btn:hover{color:var(--txt);background:var(--bg4)}
-.tab-btn.active{color:var(--accent);background:var(--cbg);border-color:var(--bdr2)}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
+      /* TABS */
+      .tabs {
+        margin: 1rem 0;
+      }
+      .tab-list {
+        display: flex;
+        gap: 2px;
+        margin-bottom: -1px;
+        flex-wrap: wrap;
+      }
+      .tab-btn {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.76rem;
+        padding: 7px 14px;
+        background: var(--bg3);
+        border: 1px solid var(--bdr);
+        border-bottom: none;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        color: var(--txt2);
+        transition: all var(--t);
+      }
+      .tab-btn:hover {
+        color: var(--txt);
+        background: var(--bg4);
+      }
+      .tab-btn.active {
+        color: var(--accent);
+        background: var(--cbg);
+        border-color: var(--bdr2);
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
 
-/* DB OVERVIEW */
-.db-overview{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin:1rem 0}
-.db-header{display:flex;align-items:center;gap:.7rem;padding:.75rem 1.2rem;background:var(--bg3);border-bottom:1px solid var(--bdr)}
-.db-name{font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:600;color:var(--txt)}
-.db-count{margin-left:auto;font-size:.72rem;color:var(--txt3);font-family:'JetBrains Mono',monospace}
-.db-tables-list{display:grid;grid-template-columns:1fr 1fr}
-.db-table-row{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1.2rem;border-bottom:1px solid var(--bdr);border-right:1px solid var(--bdr);font-size:.83rem;transition:background var(--t)}
-.db-table-row:hover{background:var(--bg3)}
-.db-table-row:nth-child(even){border-right:none}
-.db-table-name{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--txt)}
-.db-badge{font-size:.65rem;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
-.db-badge.kit{background:rgba(0,212,160,.12);color:#00d4a0;border:1px solid rgba(0,212,160,.25)}
-.db-badge.spatie{background:rgba(150,100,255,.12);color:#b48aff;border:1px solid rgba(150,100,255,.25)}
-.db-badge.sanctum{background:rgba(0,150,255,.12);color:#4da8ff;border:1px solid rgba(0,150,255,.25)}
-.db-badge.laravel{background:rgba(245,100,60,.1);color:#ff7c5c;border:1px solid rgba(245,100,60,.2)}
-.origin-kit{border-left:3px solid rgba(0,212,160,.4)}
-.origin-spatie{border-left:3px solid rgba(150,100,255,.4)}
-.origin-sanctum{border-left:3px solid rgba(0,150,255,.4)}
-.origin-laravel{border-left:3px solid rgba(245,100,60,.35)}
+      /* DB OVERVIEW */
+      .db-overview {
+        background: var(--bg2);
+        border: 1px solid var(--bdr);
+        border-radius: var(--r);
+        overflow: hidden;
+        margin: 1rem 0;
+      }
+      .db-header {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.75rem 1.2rem;
+        background: var(--bg3);
+        border-bottom: 1px solid var(--bdr);
+      }
+      .db-name {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--txt);
+      }
+      .db-count {
+        margin-left: auto;
+        font-size: 0.72rem;
+        color: var(--txt3);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .db-tables-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      .db-table-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.45rem 1.2rem;
+        border-bottom: 1px solid var(--bdr);
+        border-right: 1px solid var(--bdr);
+        font-size: 0.83rem;
+        transition: background var(--t);
+      }
+      .db-table-row:hover {
+        background: var(--bg3);
+      }
+      .db-table-row:nth-child(even) {
+        border-right: none;
+      }
+      .db-table-name {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        color: var(--txt);
+      }
+      .db-badge {
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .db-badge.kit {
+        background: rgba(0, 212, 160, 0.12);
+        color: #00d4a0;
+        border: 1px solid rgba(0, 212, 160, 0.25);
+      }
+      .db-badge.spatie {
+        background: rgba(150, 100, 255, 0.12);
+        color: #b48aff;
+        border: 1px solid rgba(150, 100, 255, 0.25);
+      }
+      .db-badge.sanctum {
+        background: rgba(0, 150, 255, 0.12);
+        color: #4da8ff;
+        border: 1px solid rgba(0, 150, 255, 0.25);
+      }
+      .db-badge.laravel {
+        background: rgba(245, 100, 60, 0.1);
+        color: #ff7c5c;
+        border: 1px solid rgba(245, 100, 60, 0.2);
+      }
+      .origin-kit {
+        border-left: 3px solid rgba(0, 212, 160, 0.4);
+      }
+      .origin-spatie {
+        border-left: 3px solid rgba(150, 100, 255, 0.4);
+      }
+      .origin-sanctum {
+        border-left: 3px solid rgba(0, 150, 255, 0.4);
+      }
+      .origin-laravel {
+        border-left: 3px solid rgba(245, 100, 60, 0.35);
+      }
 
-/* CARD */
-.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:1.4rem 1.6rem;margin-bottom:1rem;transition:border-color var(--t),box-shadow var(--t)}
-.card:hover{border-color:var(--bdr2);box-shadow:var(--sh)}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+      /* CARD */
+      .card {
+        background: var(--bg2);
+        border: 1px solid var(--bdr);
+        border-radius: var(--r);
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 1rem;
+        transition:
+          border-color var(--t),
+          box-shadow var(--t);
+      }
+      .card:hover {
+        border-color: var(--bdr2);
+        box-shadow: var(--sh);
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
 
-/* FOOTER */
-footer{margin-left:240px;padding:2rem 3rem;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;color:var(--txt3);font-size:.78rem;background:var(--bg2)}
-[dir=rtl] footer{margin-left:0;margin-right:240px}
-.footer-brand{display:flex;align-items:center;gap:8px}
-.footer-brand span{color:var(--txt2)}
+      /* FOOTER */
+      footer {
+        margin-left: 240px;
+        padding: 2rem 3rem;
+        border-top: 1px solid var(--bdr);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--txt3);
+        font-size: 0.78rem;
+        background: var(--bg2);
+      }
+      [dir="rtl"] footer {
+        margin-left: 0;
+        margin-right: 240px;
+      }
+      .footer-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .footer-brand span {
+        color: var(--txt2);
+      }
 
-/* RESPONSIVE */
-@media(max-width:900px){
-  .sidebar{display:none}
-  .content,footer{margin-left:0;margin-right:0;padding:2rem 1.2rem 4rem}
-  .features-grid,.schema-grid,.two-col{grid-template-columns:1fr}
-  h1{font-size:2rem}
-  .nav-brand{display:none}
-}
-</style>
-</head>
-<body>
-
-<!-- ══ NAV ══ -->
-<nav>
-  <div class="nav-left">
-    <div class="nav-logo">S3</div>
-    <span class="nav-brand">Laravel Auth Kit</span>
-  </div>
-  <div class="nav-right">
-    <span class="badge-v">v1.0.0</span>
-
-    <!-- LANG DROPDOWN -->
-    <div class="lang-select" id="langSelect">
-      <button class="lang-btn" id="langBtn" onclick="toggleLang()">
-        <span class="flag" id="currentFlag">🇫🇷</span>
-        <span id="currentLang">Français</span>
-        <span style="font-size:.65rem;opacity:.5">▾</span>
-      </button>
-      <div class="lang-dropdown" id="langDropdown">
-        <div class="lang-option active" onclick="setLang('fr','🇫🇷','Français','ltr')"><span class="flag">🇫🇷</span> Français</div>
-        <div class="lang-option" onclick="setLang('en','🇬🇧','English','ltr')"><span class="flag">🇬🇧</span> English</div>
-        <div class="lang-option" onclick="setLang('ar','🇸🇦','العربية','rtl')"><span class="flag">🇸🇦</span> العربية</div>
-        <div class="lang-option" onclick="setLang('es','🇪🇸','Español','ltr')"><span class="flag">🇪🇸</span> Español</div>
-        <div class="lang-option" onclick="setLang('zh','🇨🇳','中文','ltr')"><span class="flag">🇨🇳</span> 中文</div>
-        <div class="lang-option" onclick="setLang('de','🇩🇪','Deutsch','ltr')"><span class="flag">🇩🇪</span> Deutsch</div>
+      /* RESPONSIVE */
+      @media (max-width: 900px) {
+        .sidebar {
+          display: none;
+        }
+        .content,
+        footer {
+          margin-left: 0;
+          margin-right: 0;
+          padding: 2rem 1.2rem 4rem;
+        }
+        .features-grid,
+        .schema-grid,
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 2rem;
+        }
+        .nav-brand {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ══ NAV ══ -->
+    <nav>
+      <div class="nav-left">
+        <div class="nav-logo">S3</div>
+        <span class="nav-brand">Laravel Auth Kit</span>
       </div>
-    </div>
+      <div class="nav-right">
+        <span class="badge-v">v1.1.0</span>
 
-    <button class="theme-btn" id="themeBtn" title="Toggle theme" onclick="toggleTheme()">☀</button>
-  </div>
-</nav>
+        <!-- LANG DROPDOWN -->
+        <div class="lang-select" id="langSelect">
+          <button class="lang-btn" id="langBtn" onclick="toggleLang()">
+            <span class="flag" id="currentFlag">🇫🇷</span>
+            <span id="currentLang">Français</span>
+            <span style="font-size: 0.65rem; opacity: 0.5">▾</span>
+          </button>
+          <div class="lang-dropdown" id="langDropdown">
+            <div
+              class="lang-option active"
+              onclick="setLang('fr', '🇫🇷', 'Français', 'ltr')"
+            >
+              <span class="flag">🇫🇷</span> Français
+            </div>
+            <div
+              class="lang-option"
+              onclick="setLang('en', '🇬🇧', 'English', 'ltr')"
+            >
+              <span class="flag">🇬🇧</span> English
+            </div>
+            <div
+              class="lang-option"
+              onclick="setLang('ar', '🇸🇦', 'العربية', 'rtl')"
+            >
+              <span class="flag">🇸🇦</span> العربية
+            </div>
+            <div
+              class="lang-option"
+              onclick="setLang('es', '🇪🇸', 'Español', 'ltr')"
+            >
+              <span class="flag">🇪🇸</span> Español
+            </div>
+            <div
+              class="lang-option"
+              onclick="setLang('zh', '🇨🇳', '中文', 'ltr')"
+            >
+              <span class="flag">🇨🇳</span> 中文
+            </div>
+            <div
+              class="lang-option"
+              onclick="setLang('de', '🇩🇪', 'Deutsch', 'ltr')"
+            >
+              <span class="flag">🇩🇪</span> Deutsch
+            </div>
+          </div>
+        </div>
 
-<div class="layout">
+        <button
+          class="theme-btn"
+          id="themeBtn"
+          title="Toggle theme"
+          onclick="toggleTheme()"
+        >
+          ☀
+        </button>
+      </div>
+    </nav>
 
-<!-- ══ SIDEBAR ══ -->
-<aside class="sidebar">
-  <div class="sb-section" data-i18n="sb_start">Démarrage</div>
-  <a href="#intro" class="active" data-i18n="sb_intro">Introduction</a>
-  <a href="#installation" data-i18n="sb_install">Installation</a>
-  <a href="#user-model" data-i18n="sb_user">Modèle User</a>
-  <a href="#configuration" data-i18n="sb_config">Configuration</a>
-  <a href="#seeder" data-i18n="sb_seeder">Seeder rôles</a>
-  <div class="sb-section">API</div>
-  <a href="#routes" data-i18n="sb_routes">Toutes les routes</a>
-  <a href="#auth" data-i18n="sb_auth">Authentification</a>
-  <a href="#profil" data-i18n="sb_profile">Profil</a>
-  <a href="#otp" data-i18n="sb_otp">Reset OTP</a>
-  <a href="#roles" data-i18n="sb_roles">Rôles & Permissions</a>
-  <div class="sb-section" data-i18n="sb_advanced">Avancé</div>
-  <a href="#schema" data-i18n="sb_db">Base de données</a>
-  <a href="#logs" data-i18n="sb_logs">Logs d'activité</a>
-  <a href="#modes" data-i18n="sb_modes">Modes d'inscription</a>
-  <a href="#logout-modes" data-i18n="sb_logout">Modes logout</a>
-  <a href="#status" data-i18n="sb_status">Statut compte</a>
-</aside>
+    <div class="layout">
+      <!-- ══ SIDEBAR ══ -->
+      <aside class="sidebar">
+        <div class="sb-section" data-i18n="sb_start">Démarrage</div>
+        <a href="#intro" class="active" data-i18n="sb_intro">Introduction</a>
+        <a href="#installation" data-i18n="sb_install">Installation</a>
+        <a href="#user-model" data-i18n="sb_user">Modèle User</a>
+        <a href="#configuration" data-i18n="sb_config">Configuration</a>
+        <a href="#seeder" data-i18n="sb_seeder">Seeder rôles</a>
+        <div class="sb-section">API</div>
+        <a href="#routes" data-i18n="sb_routes">Toutes les routes</a>
+        <a href="#auth" data-i18n="sb_auth">Authentification</a>
+        <a href="#profil" data-i18n="sb_profile">Profil</a>
+        <a href="#otp" data-i18n="sb_otp">Reset OTP</a>
+        <a href="#roles" data-i18n="sb_roles">Rôles & Permissions</a>
+        <div class="sb-section" data-i18n="sb_advanced">Avancé</div>
+        <a href="#schema" data-i18n="sb_db">Base de données</a>
+        <a href="#logs" data-i18n="sb_logs">Logs d'activité</a>
+        <a href="#modes" data-i18n="sb_modes">Modes d'inscription</a>
+        <a href="#logout-modes" data-i18n="sb_logout">Modes logout</a>
+        <a href="#status" data-i18n="sb_status">Statut compte</a>
+      </aside>
 
-<!-- ══ CONTENT ══ -->
-<main class="content">
+      <!-- ══ CONTENT ══ -->
+      <main class="content">
+        <!-- HERO -->
+        <div class="hero" id="intro">
+          <div class="hero-label">s3tech/laravel-auth-kit</div>
+          <h1>Laravel Auth Kit</h1>
+          <p data-i18n="hero_desc">
+            Package Laravel <strong>plug-and-play</strong> pour les projets API.
+            Installez-le et tout est prêt : authentification Sanctum, profil,
+            reset OTP, rôles Spatie et logs d'activité complets.
+          </p>
+          <div class="hero-tags">
+            <span class="tag">Laravel 10/11/12</span>
+            <span class="tag">Sanctum</span>
+            <span class="tag">Spatie Permissions</span>
+            <span class="tag">OTP Email</span>
+            <span class="tag">Activity Logs</span>
+            <span class="tag">PHP 8.1+</span>
+          </div>
+        </div>
 
-<!-- HERO -->
-<div class="hero" id="intro">
-  <div class="hero-label">s3tech/laravel-auth-kit</div>
-  <h1>Laravel Auth Kit</h1>
-  <p data-i18n="hero_desc">Package Laravel <strong>plug-and-play</strong> pour les projets API. Installez-le et tout est prêt : authentification Sanctum, profil, reset OTP, rôles Spatie et logs d'activité complets.</p>
-  <div class="hero-tags">
-    <span class="tag">Laravel 10/11/12</span>
-    <span class="tag">Sanctum</span>
-    <span class="tag">Spatie Permissions</span>
-    <span class="tag">OTP Email</span>
-    <span class="tag">Activity Logs</span>
-    <span class="tag">PHP 8.1+</span>
-  </div>
-</div>
+        <!-- FEATURES -->
+        <section>
+          <h2>
+            <span class="icon">✦</span>
+            <span data-i18n="feat_title">Fonctionnalités</span>
+          </h2>
+          <div class="features-grid">
+            <div class="feat-card">
+              <div class="feat-icon">🔐</div>
+              <div class="feat-title" data-i18n="feat1_t">
+                Authentification Sanctum
+              </div>
+              <div class="feat-desc" data-i18n="feat1_d">
+                Login, logout multi-mode, /me, liste des sessions actives avec
+                révocation ciblée
+              </div>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon">👤</div>
+              <div class="feat-title" data-i18n="feat2_t">
+                Gestion de profil
+              </div>
+              <div class="feat-desc" data-i18n="feat2_d">
+                Prénom, nom, email, téléphone. Champs configurables. Statut non
+                modifiable par l'utilisateur.
+              </div>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon">📧</div>
+              <div class="feat-title" data-i18n="feat3_t">
+                Reset mot de passe OTP
+              </div>
+              <div class="feat-desc" data-i18n="feat3_d">
+                Flux 3 étapes : email → code OTP 6 chiffres → reset_token →
+                nouveau mot de passe
+              </div>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon">🛡️</div>
+              <div class="feat-title" data-i18n="feat4_t">
+                Rôles & Permissions
+              </div>
+              <div class="feat-desc" data-i18n="feat4_d">
+                CRUD complet via Spatie Laravel Permission. Assignation
+                rôle↔permission et utilisateur↔rôle.
+              </div>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon">📊</div>
+              <div class="feat-title" data-i18n="feat5_t">Logs d'activité</div>
+              <div class="feat-desc" data-i18n="feat5_d">
+                IP réelle, appareil, OS, navigateur, géolocalisation GPS, action
+                CRUD et ressource cible.
+              </div>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon">🏢</div>
+              <div class="feat-title" data-i18n="feat6_t">Mode Admin</div>
+              <div class="feat-desc" data-i18n="feat6_d">
+                Création de comptes par admin avec mot de passe temporaire.
+                Statut active/inactive/banned.
+              </div>
+            </div>
+          </div>
+        </section>
 
-<!-- FEATURES -->
-<section>
-  <h2><span class="icon">✦</span> <span data-i18n="feat_title">Fonctionnalités</span></h2>
-  <div class="features-grid">
-    <div class="feat-card"><div class="feat-icon">🔐</div><div class="feat-title" data-i18n="feat1_t">Authentification Sanctum</div><div class="feat-desc" data-i18n="feat1_d">Login, logout multi-mode, /me, liste des sessions actives avec révocation ciblée</div></div>
-    <div class="feat-card"><div class="feat-icon">👤</div><div class="feat-title" data-i18n="feat2_t">Gestion de profil</div><div class="feat-desc" data-i18n="feat2_d">Prénom, nom, email, téléphone. Champs configurables. Statut non modifiable par l'utilisateur.</div></div>
-    <div class="feat-card"><div class="feat-icon">📧</div><div class="feat-title" data-i18n="feat3_t">Reset mot de passe OTP</div><div class="feat-desc" data-i18n="feat3_d">Flux 3 étapes : email → code OTP 6 chiffres → reset_token → nouveau mot de passe</div></div>
-    <div class="feat-card"><div class="feat-icon">🛡️</div><div class="feat-title" data-i18n="feat4_t">Rôles & Permissions</div><div class="feat-desc" data-i18n="feat4_d">CRUD complet via Spatie Laravel Permission. Assignation rôle↔permission et utilisateur↔rôle.</div></div>
-    <div class="feat-card"><div class="feat-icon">📊</div><div class="feat-title" data-i18n="feat5_t">Logs d'activité</div><div class="feat-desc" data-i18n="feat5_d">IP réelle, appareil, OS, navigateur, géolocalisation GPS, action CRUD et ressource cible.</div></div>
-    <div class="feat-card"><div class="feat-icon">🏢</div><div class="feat-title" data-i18n="feat6_t">Mode Admin</div><div class="feat-desc" data-i18n="feat6_d">Création de comptes par admin avec mot de passe temporaire. Statut active/inactive/banned.</div></div>
-  </div>
-</section>
-
-<!-- INSTALL -->
-<section id="installation">
-  <h2><span class="icon">⚡</span> <span data-i18n="install_title">Installation</span></h2>
-  <div class="steps">
-    <div class="step"><div class="step-num"></div><div class="step-body">
-      <div class="step-title" data-i18n="step1">Installer via Composer</div>
-      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-      <pre>composer require s3tech/laravel-auth-kit</pre></div>
-    </div></div>
-    <div class="step"><div class="step-num"></div><div class="step-body">
-      <div class="step-title" data-i18n="step2">Publier les fichiers</div>
-      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-      <pre><span class="c"># Config</span>
+        <!-- INSTALL -->
+        <section id="installation">
+          <h2>
+            <span class="icon">⚡</span>
+            <span data-i18n="install_title">Installation</span>
+          </h2>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num"></div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="step1">
+                  Installer via Composer
+                </div>
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">bash</span
+                    ><button
+                      class="copy-btn"
+                      onclick="copyCode(this)"
+                      data-i18n-copy
+                    >
+                      copier
+                    </button>
+                  </div>
+                  <pre>composer require s3tech/laravel-auth-kit</pre>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num"></div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="step2">
+                  Publier les fichiers
+                </div>
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">bash</span
+                    ><button
+                      class="copy-btn"
+                      onclick="copyCode(this)"
+                      data-i18n-copy
+                    >
+                      copier
+                    </button>
+                  </div>
+                  <pre><span class="c"># Config</span>
 php artisan vendor:publish --tag=auth-kit-config
 
 <span class="c"># Sanctum</span>
@@ -304,18 +1216,55 @@ php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvid
 php artisan vendor:publish --tag=auth-kit-migrations
 
 <span class="c"># (Optionnel) User model stub</span>
-php artisan vendor:publish --tag=auth-kit-user-model</pre></div>
-    </div></div>
-    <div class="step"><div class="step-num"></div><div class="step-body">
-      <div class="step-title" data-i18n="step3">Migrer</div>
-      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-      <pre>php artisan migrate</pre></div>
-      <div class="callout callout-ok"><span class="callout-icon">✓</span><span data-i18n="migrate_ok">Toutes les tables sont créées : users, auth_kit_activity_logs, auth_kit_password_reset_otps, tables Spatie et Sanctum.</span></div>
-    </div></div>
-    <div class="step"><div class="step-num"></div><div class="step-body">
-      <div class="step-title" data-i18n="step4">Configurer le modèle User</div>
-      <div class="code-block" id="user-model"><div class="code-header"><span class="code-lang">php · app/Models/User.php</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-      <pre><span class="k">use</span> Laravel\Sanctum\HasApiTokens;
+php artisan vendor:publish --tag=auth-kit-user-model</pre>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num"></div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="step3">Migrer</div>
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">bash</span
+                    ><button
+                      class="copy-btn"
+                      onclick="copyCode(this)"
+                      data-i18n-copy
+                    >
+                      copier
+                    </button>
+                  </div>
+                  <pre>php artisan migrate</pre>
+                </div>
+                <div class="callout callout-ok">
+                  <span class="callout-icon">✓</span
+                  ><span data-i18n="migrate_ok"
+                    >Toutes les tables sont créées : users,
+                    auth_kit_activity_logs, auth_kit_password_reset_otps, tables
+                    Spatie et Sanctum.</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num"></div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="step4">
+                  Configurer le modèle User
+                </div>
+                <div class="code-block" id="user-model">
+                  <div class="code-header">
+                    <span class="code-lang">php · app/Models/User.php</span
+                    ><button
+                      class="copy-btn"
+                      onclick="copyCode(this)"
+                      data-i18n-copy
+                    >
+                      copier
+                    </button>
+                  </div>
+                  <pre><span class="k">use</span> Laravel\Sanctum\HasApiTokens;
 <span class="k">use</span> Spatie\Permission\Traits\HasRoles;
 <span class="k">use</span> S3Tech\AuthKit\Traits\HasAuthKit;
 
@@ -332,22 +1281,53 @@ php artisan vendor:publish --tag=auth-kit-user-model</pre></div>
         <span class="s">'email_verified_at'</span>   =&gt; <span class="s">'datetime'</span>,
         <span class="s">'must_change_password'</span> =&gt; <span class="s">'boolean'</span>,
     ];
-}</pre></div>
-    </div></div>
-    <div class="step"><div class="step-num"></div><div class="step-body">
-      <div class="step-title" data-i18n="step5">Guard Spatie = sanctum</div>
-      <div class="code-block"><div class="code-header"><span class="code-lang">php · config/permission.php</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-      <pre><span class="s">'guard_name'</span> =&gt; <span class="s">'sanctum'</span>,</pre></div>
-    </div></div>
-  </div>
-</section>
+}</pre>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num"></div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="step5">
+                  Guard Spatie = sanctum
+                </div>
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">php · config/permission.php</span
+                    ><button
+                      class="copy-btn"
+                      onclick="copyCode(this)"
+                      data-i18n-copy
+                    >
+                      copier
+                    </button>
+                  </div>
+                  <pre><span class="s">'guard_name'</span> =&gt; <span class="s">'sanctum'</span>,</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-<!-- SEEDER -->
-<section id="seeder">
-  <h2><span class="icon">🌱</span> <span data-i18n="seeder_title">Seeder de rôles initiaux</span></h2>
-  <p data-i18n="seeder_desc">À exécuter une seule fois pour initialiser les rôles et permissions de base.</p>
-  <div class="code-block"><div class="code-header"><span class="code-lang">php · database/seeders/RoleSeeder.php</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-  <pre><span class="k">use</span> Spatie\Permission\Models\Role;
+        <!-- SEEDER -->
+        <section id="seeder">
+          <h2>
+            <span class="icon">🌱</span>
+            <span data-i18n="seeder_title">Seeder de rôles initiaux</span>
+          </h2>
+          <p data-i18n="seeder_desc">
+            À exécuter une seule fois pour initialiser les rôles et permissions
+            de base.
+          </p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang"
+                >php · database/seeders/RoleSeeder.php</span
+              ><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>
+                copier
+              </button>
+            </div>
+            <pre><span class="k">use</span> Spatie\Permission\Models\Role;
 <span class="k">use</span> Spatie\Permission\Models\Permission;
 
 Role::firstOrCreate([<span class="s">'name'</span> =&gt; <span class="s">'super-admin'</span>, <span class="s">'guard_name'</span> =&gt; <span class="s">'sanctum'</span>]);
@@ -358,15 +1338,28 @@ Role::firstOrCreate([<span class="s">'name'</span> =&gt; <span class="s">'user'<
 <span class="k">foreach</span> (<span class="v">$permissions</span> <span class="k">as</span> <span class="v">$perm</span>) {
     Permission::firstOrCreate([<span class="s">'name'</span> =&gt; <span class="v">$perm</span>, <span class="s">'guard_name'</span> =&gt; <span class="s">'sanctum'</span>]);
 }
-Role::findByName(<span class="s">'super-admin'</span>, <span class="s">'sanctum'</span>)-&gt;givePermissionTo(<span class="v">$permissions</span>);</pre></div>
-</section>
+Role::findByName(<span class="s">'super-admin'</span>, <span class="s">'sanctum'</span>)-&gt;givePermissionTo(<span class="v">$permissions</span>);</pre>
+          </div>
+        </section>
 
-<!-- CONFIG -->
-<section id="configuration">
-  <h2><span class="icon">⚙</span> <span data-i18n="config_title">Configuration</span></h2>
-  <p data-i18n="config_desc">Après vendor:publish, le fichier <code>config/auth-kit.php</code> est disponible.</p>
-  <div class="code-block"><div class="code-header"><span class="code-lang">php · config/auth-kit.php</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-  <pre><span class="k">return</span> [
+        <!-- CONFIG -->
+        <section id="configuration">
+          <h2>
+            <span class="icon">⚙</span>
+            <span data-i18n="config_title">Configuration</span>
+          </h2>
+          <p data-i18n="config_desc">
+            Après vendor:publish, le fichier
+            <code>config/auth-kit.php</code> est disponible.
+          </p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">php · config/auth-kit.php</span
+              ><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>
+                copier
+              </button>
+            </div>
+            <pre><span class="k">return</span> [
     <span class="s">'route_prefix'</span>     =&gt; <span class="s">'api'</span>,
     <span class="s">'route_middleware'</span> =&gt; [<span class="s">'api'</span>],
     <span class="s">'user_model'</span>       =&gt; \App\Models\User::<span class="k">class</span>,
@@ -374,6 +1367,10 @@ Role::findByName(<span class="s">'super-admin'</span>, <span class="s">'sanctum'
     <span class="s">'profile'</span>          =&gt; [<span class="s">'editable_fields'</span> =&gt; [<span class="s">'first_name'</span>,<span class="s">'last_name'</span>,<span class="s">'email'</span>,<span class="s">'phone'</span>]],
     <span class="s">'otp'</span>              =&gt; [<span class="s">'length'</span> =&gt; <span class="n">6</span>, <span class="s">'expires_in'</span> =&gt; <span class="n">10</span>],
     <span class="s">'password_rules'</span>   =&gt; [<span class="s">'min:8'</span>],
+    <span class="s">'messages'</span>         =&gt; [
+        <span class="s">'default_locale'</span>   =&gt; <span class="s">'en'</span>,
+        <span class="s">'supported_locales'</span> =&gt; [<span class="s">'en'</span>, <span class="s">'fr'</span>],
+    ],
     <span class="s">'activity_log'</span>     =&gt; [
         <span class="s">'enabled'</span>        =&gt; <span class="k">true</span>,
         <span class="s">'retention_days'</span> =&gt; <span class="n">90</span>,
@@ -384,186 +1381,630 @@ Role::findByName(<span class="s">'super-admin'</span>, <span class="s">'sanctum'
         <span class="s">'create_user'</span>       =&gt; <span class="s">'create-user'</span>,
         <span class="s">'update_other_user'</span> =&gt; <span class="s">'update-user'</span>,
     ],
-];</pre></div>
-</section>
+];</pre>
+          </div>
+          <div class="callout callout-info">
+            <span class="callout-icon">i</span
+            ><span data-i18n="messages_desc"
+              >API responses are bilingual (English/French). By default,
+              <code>message</code> and <code>error</code> are returned in
+              English, while translations remain available in
+              <code>message_translations</code> or
+              <code>error_translations</code>. Validation errors from
+              FormRequest follow the same approach via <code>errors</code> and
+              <code>errors_translations</code>. You can force French with
+              <code>X-Auth-Kit-Locale: fr</code> or <code>?lang=fr</code>.</span
+            >
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang"
+                >json ·
+                <span data-i18n="messages_example"
+                  >Bilingual response example</span
+                ></span
+              ><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>
+                copier
+              </button>
+            </div>
+            <pre>{
+  <span class="k">"message"</span>: <span class="s">"Role 'manager' assigned to user #12."</span>,
+  <span class="k">"locale"</span>: <span class="s">"en"</span>,
+  <span class="k">"message_translations"</span>: {
+    <span class="k">"en"</span>: <span class="s">"Role 'manager' assigned to user #12."</span>,
+  <span class="k">"fr"</span>: <span class="s">"Rôle 'manager' assigné à l'utilisateur #12."</span>
+  }
+}</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang"
+                >json ·
+                <span data-i18n="validation_example"
+                  >Validation response example</span
+                ></span
+              ><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>
+                copier
+              </button>
+            </div>
+            <pre>{
+  <span class="k">"error"</span>: <span class="s">"Les donnees fournies sont invalides."</span>,
+  <span class="k">"locale"</span>: <span class="s">"fr"</span>,
+  <span class="k">"error_translations"</span>: {
+    <span class="k">"en"</span>: <span class="s">"The given data was invalid."</span>,
+    <span class="k">"fr"</span>: <span class="s">"Les donnees fournies sont invalides."</span>
+  },
+  <span class="k">"errors"</span>: {
+    <span class="k">"email"</span>: [<span class="s">"Le champ adresse e-mail est obligatoire."</span>]
+  },
+  <span class="k">"errors_translations"</span>: {
+    <span class="k">"en"</span>: {
+      <span class="k">"email"</span>: [<span class="s">"The email address field is required."</span>]
+    },
+    <span class="k">"fr"</span>: {
+      <span class="k">"email"</span>: [<span class="s">"Le champ adresse e-mail est obligatoire."</span>]
+    }
+  }
+}</pre>
+          </div>
+        </section>
 
-<!-- ROUTES -->
-<section id="routes">
-  <h2><span class="icon">🛣</span> <span data-i18n="routes_title">Routes disponibles</span></h2>
+        <!-- ROUTES -->
+        <section id="routes">
+          <h2>
+            <span class="icon">🛣</span>
+            <span data-i18n="routes_title">Routes disponibles</span>
+          </h2>
 
-  <h3 id="auth" data-i18n="routes_public">Authentification — Publiques</h3>
-  <div class="table-wrap"><table>
-    <thead><tr><th data-i18n="th_method">Méthode</th><th>Endpoint</th><th data-i18n="th_desc">Description</th><th data-i18n="th_cond">Condition</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/auth/register</code></td><td data-i18n="r_register">Inscription autonome</td><td data-i18n="r_register_cond">Mode <code>self</code> uniquement</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/auth/login</code></td><td data-i18n="r_login">Connexion → token</td><td>—</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/auth/forgot-password</code></td><td data-i18n="r_forgot">Envoi OTP par email</td><td>—</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/auth/verify-otp</code></td><td data-i18n="r_verify">Vérifier OTP → reset_token</td><td>—</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/auth/reset-password</code></td><td data-i18n="r_reset">Nouveau mot de passe</td><td>—</td></tr>
-    </tbody>
-  </table></div>
+          <h3 id="auth" data-i18n="routes_public">
+            Authentification — Publiques
+          </h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_method">Méthode</th>
+                  <th>Endpoint</th>
+                  <th data-i18n="th_desc">Description</th>
+                  <th data-i18n="th_cond">Condition</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/auth/register</code></td>
+                  <td data-i18n="r_register">Inscription autonome</td>
+                  <td data-i18n="r_register_cond">
+                    Mode <code>self</code> uniquement
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/auth/login</code></td>
+                  <td data-i18n="r_login">Connexion → token</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/auth/forgot-password</code></td>
+                  <td data-i18n="r_forgot">Envoi OTP par email</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/auth/verify-otp</code></td>
+                  <td data-i18n="r_verify">Vérifier OTP → reset_token</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/auth/reset-password</code></td>
+                  <td data-i18n="r_reset">Nouveau mot de passe</td>
+                  <td>—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-  <h3 data-i18n="routes_protected">Authentification — Protégées 🔒</h3>
-  <div class="table-wrap"><table>
-    <thead><tr><th data-i18n="th_method">Méthode</th><th>Endpoint</th><th data-i18n="th_desc">Description</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method get">GET</span></td><td><code>/api/auth/me</code></td><td data-i18n="r_me">Utilisateur connecté (rôles + permissions)</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/auth/logout</code></td><td data-i18n="r_logout">Déconnexion (3 modes)</td></tr>
-      <tr><td><span class="method get">GET</span></td><td><code>/api/auth/sessions</code></td><td data-i18n="r_sessions">Liste des sessions actives</td></tr>
-    </tbody>
-  </table></div>
+          <h3 data-i18n="routes_protected">Authentification — Protégées 🔒</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_method">Méthode</th>
+                  <th>Endpoint</th>
+                  <th data-i18n="th_desc">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td><code>/api/auth/me</code></td>
+                  <td data-i18n="r_me">
+                    Utilisateur connecté (rôles + permissions)
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/auth/logout</code></td>
+                  <td data-i18n="r_logout">Déconnexion (3 modes)</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td><code>/api/auth/sessions</code></td>
+                  <td data-i18n="r_sessions">Liste des sessions actives</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-  <h3 id="profil" data-i18n="routes_profile">Profil 🔒</h3>
-  <div class="table-wrap"><table>
-    <thead><tr><th data-i18n="th_method">Méthode</th><th>Endpoint</th><th data-i18n="th_desc">Description</th><th data-i18n="th_perm">Permission</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method put">PUT</span></td><td><code>/api/profile</code></td><td data-i18n="r_profile_update">Modifier son profil</td><td>—</td></tr>
-      <tr><td><span class="method put">PUT</span></td><td><code>/api/profile/password</code></td><td data-i18n="r_password">Changer son mot de passe</td><td>—</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/users</code></td><td data-i18n="r_create_user">Créer un utilisateur (admin)</td><td><code>create-user</code></td></tr>
-      <tr><td><span class="method put">PUT</span></td><td><code>/api/users/{user}</code></td><td data-i18n="r_update_user">Modifier profil d'un utilisateur</td><td><code>update-user</code></td></tr>
-    </tbody>
-  </table></div>
+          <h3 id="profil" data-i18n="routes_profile">Profil 🔒</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_method">Méthode</th>
+                  <th>Endpoint</th>
+                  <th data-i18n="th_desc">Description</th>
+                  <th data-i18n="th_perm">Permission</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method put">PUT</span></td>
+                  <td><code>/api/profile</code></td>
+                  <td data-i18n="r_profile_update">Modifier son profil</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><span class="method put">PUT</span></td>
+                  <td><code>/api/profile/password</code></td>
+                  <td data-i18n="r_password">Changer son mot de passe</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/users</code></td>
+                  <td data-i18n="r_create_user">
+                    Créer un utilisateur (admin)
+                  </td>
+                  <td><code>create-user</code></td>
+                </tr>
+                <tr>
+                  <td><span class="method put">PUT</span></td>
+                  <td><code>/api/users/{user}</code></td>
+                  <td data-i18n="r_update_user">
+                    Modifier profil d'un utilisateur
+                  </td>
+                  <td><code>update-user</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-  <h3 id="roles" data-i18n="routes_roles">Rôles & Permissions 🔒 <code>manage-roles</code></h3>
-  <div class="table-wrap"><table>
-    <thead><tr><th data-i18n="th_method">Méthode</th><th>Endpoint</th><th data-i18n="th_desc">Description</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method get">GET</span></td><td><code>/api/roles</code></td><td data-i18n="r_roles_list">Lister les rôles</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/roles</code></td><td data-i18n="r_roles_create">Créer un rôle</td></tr>
-      <tr><td><span class="method delete">DELETE</span></td><td><code>/api/roles/{role}</code></td><td data-i18n="r_roles_delete">Supprimer un rôle</td></tr>
-      <tr><td><span class="method get">GET</span></td><td><code>/api/permissions</code></td><td data-i18n="r_perms_list">Lister les permissions</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/permissions</code></td><td data-i18n="r_perms_create">Créer une permission</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/roles/{role}/permissions</code></td><td data-i18n="r_assign_perm">Assigner permission → rôle</td></tr>
-      <tr><td><span class="method delete">DELETE</span></td><td><code>/api/roles/{role}/permissions/{p}</code></td><td data-i18n="r_revoke_perm">Révoquer permission d'un rôle</td></tr>
-      <tr><td><span class="method post">POST</span></td><td><code>/api/users/{user}/roles</code></td><td data-i18n="r_assign_role">Assigner rôle → utilisateur</td></tr>
-      <tr><td><span class="method delete">DELETE</span></td><td><code>/api/users/{user}/roles/{role}</code></td><td data-i18n="r_revoke_role">Révoquer rôle d'un utilisateur</td></tr>
-    </tbody>
-  </table></div>
+          <h3 id="roles" data-i18n="routes_roles">
+            Rôles & Permissions 🔒 <code>manage-roles</code>
+          </h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_method">Méthode</th>
+                  <th>Endpoint</th>
+                  <th data-i18n="th_desc">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td><code>/api/roles</code></td>
+                  <td data-i18n="r_roles_list">Lister les rôles</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/roles</code></td>
+                  <td data-i18n="r_roles_create">Créer un rôle</td>
+                </tr>
+                <tr>
+                  <td><span class="method delete">DELETE</span></td>
+                  <td><code>/api/roles/{role}</code></td>
+                  <td data-i18n="r_roles_delete">Supprimer un rôle</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td><code>/api/permissions</code></td>
+                  <td data-i18n="r_perms_list">Lister les permissions</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/permissions</code></td>
+                  <td data-i18n="r_perms_create">Créer une permission</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/roles/{role}/permissions</code></td>
+                  <td data-i18n="r_assign_perm">Assigner permission → rôle</td>
+                </tr>
+                <tr>
+                  <td><span class="method delete">DELETE</span></td>
+                  <td><code>/api/roles/{role}/permissions/{p}</code></td>
+                  <td data-i18n="r_revoke_perm">
+                    Révoquer permission d'un rôle
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td><code>/api/users/{user}/roles</code></td>
+                  <td data-i18n="r_assign_role">Assigner rôle → utilisateur</td>
+                </tr>
+                <tr>
+                  <td><span class="method delete">DELETE</span></td>
+                  <td><code>/api/users/{user}/roles/{role}</code></td>
+                  <td data-i18n="r_revoke_role">
+                    Révoquer rôle d'un utilisateur
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-  <h3 data-i18n="routes_logs">Logs 🔒</h3>
-  <div class="table-wrap"><table>
-    <thead><tr><th data-i18n="th_method">Méthode</th><th>Endpoint</th><th data-i18n="th_desc">Description</th><th data-i18n="th_perm">Permission</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method get">GET</span></td><td><code>/api/activity-logs/me</code></td><td data-i18n="r_logs_me">Mes propres logs</td><td>—</td></tr>
-      <tr><td><span class="method get">GET</span></td><td><code>/api/activity-logs/user/{user}</code></td><td data-i18n="r_logs_user">Logs d'un utilisateur</td><td><code>manage-roles</code></td></tr>
-      <tr><td><span class="method get">GET</span></td><td><code>/api/activity-logs</code></td><td data-i18n="r_logs_all">Tous les logs</td><td><code>manage-roles</code></td></tr>
-    </tbody>
-  </table></div>
-  <p style="font-size:.82rem" data-i18n="filters_hint">Filtres : <code>?event=login&amp;from=2024-01-01&amp;to=2024-12-31&amp;per_page=50</code></p>
-</section>
+          <h3 data-i18n="routes_logs">Logs 🔒</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_method">Méthode</th>
+                  <th>Endpoint</th>
+                  <th data-i18n="th_desc">Description</th>
+                  <th data-i18n="th_perm">Permission</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td><code>/api/activity-logs/me</code></td>
+                  <td data-i18n="r_logs_me">Mes propres logs</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td><code>/api/activity-logs/user/{user}</code></td>
+                  <td data-i18n="r_logs_user">Logs d'un utilisateur</td>
+                  <td><code>manage-roles</code></td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td><code>/api/activity-logs</code></td>
+                  <td data-i18n="r_logs_all">Tous les logs</td>
+                  <td><code>manage-roles</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size: 0.82rem" data-i18n="filters_hint">
+            Filtres :
+            <code
+              >?event=login&amp;from=2024-01-01&amp;to=2024-12-31&amp;per_page=50</code
+            >
+          </p>
+        </section>
 
-<!-- OTP -->
-<section id="otp">
-  <h2><span class="icon">🔑</span> <span data-i18n="otp_title">Flux Reset OTP</span></h2>
-  <p data-i18n="otp_desc">Processus en 3 étapes pour réinitialiser un mot de passe oublié.</p>
-  <div class="tabs">
-    <div class="tab-list">
-      <button class="tab-btn active" onclick="openTab(event,'otp1')" data-i18n="otp_step1">1. Envoyer OTP</button>
-      <button class="tab-btn" onclick="openTab(event,'otp2')" data-i18n="otp_step2">2. Vérifier OTP</button>
-      <button class="tab-btn" onclick="openTab(event,'otp3')" data-i18n="otp_step3">3. Nouveau mot de passe</button>
-    </div>
-    <div class="tab-panel active" id="otp1">
-      <div class="code-block"><div class="code-header"><span class="code-lang">POST /api/auth/forgot-password</span></div>
-      <pre>{ <span class="s">"email"</span>: <span class="s">"user@example.com"</span> }
-<span class="c">// 200 → OTP envoyé par email</span></pre></div>
-    </div>
-    <div class="tab-panel" id="otp2">
-      <div class="code-block"><div class="code-header"><span class="code-lang">POST /api/auth/verify-otp</span></div>
-      <pre>{ <span class="s">"email"</span>: <span class="s">"user@example.com"</span>, <span class="s">"otp"</span>: <span class="s">"482910"</span> }
-<span class="c">// 200 →</span> { <span class="s">"reset_token"</span>: <span class="s">"a1b2c3..."</span> }</pre></div>
-    </div>
-    <div class="tab-panel" id="otp3">
-      <div class="code-block"><div class="code-header"><span class="code-lang">POST /api/auth/reset-password</span></div>
-      <pre>{
+        <!-- OTP -->
+        <section id="otp">
+          <h2>
+            <span class="icon">🔑</span>
+            <span data-i18n="otp_title">Flux Reset OTP</span>
+          </h2>
+          <p data-i18n="otp_desc">
+            Processus en 3 étapes pour réinitialiser un mot de passe oublié.
+          </p>
+          <div class="tabs">
+            <div class="tab-list">
+              <button
+                class="tab-btn active"
+                onclick="openTab(event, 'otp1')"
+                data-i18n="otp_step1"
+              >
+                1. Envoyer OTP
+              </button>
+              <button
+                class="tab-btn"
+                onclick="openTab(event, 'otp2')"
+                data-i18n="otp_step2"
+              >
+                2. Vérifier OTP
+              </button>
+              <button
+                class="tab-btn"
+                onclick="openTab(event, 'otp3')"
+                data-i18n="otp_step3"
+              >
+                3. Nouveau mot de passe
+              </button>
+            </div>
+            <div class="tab-panel active" id="otp1">
+              <div class="code-block">
+                <div class="code-header">
+                  <span class="code-lang">POST /api/auth/forgot-password</span>
+                </div>
+                <pre>{ <span class="s">"email"</span>: <span class="s">"user@example.com"</span> }
+<span class="c">// 200 → OTP envoyé par email</span></pre>
+              </div>
+            </div>
+            <div class="tab-panel" id="otp2">
+              <div class="code-block">
+                <div class="code-header">
+                  <span class="code-lang">POST /api/auth/verify-otp</span>
+                </div>
+                <pre>{ <span class="s">"email"</span>: <span class="s">"user@example.com"</span>, <span class="s">"otp"</span>: <span class="s">"482910"</span> }
+<span class="c">// 200 →</span> { <span class="s">"reset_token"</span>: <span class="s">"a1b2c3..."</span> }</pre>
+              </div>
+            </div>
+            <div class="tab-panel" id="otp3">
+              <div class="code-block">
+                <div class="code-header">
+                  <span class="code-lang">POST /api/auth/reset-password</span>
+                </div>
+                <pre>{
   <span class="s">"email"</span>:                 <span class="s">"user@example.com"</span>,
   <span class="s">"reset_token"</span>:           <span class="s">"a1b2c3..."</span>,
   <span class="s">"password"</span>:              <span class="s">"NewPass123"</span>,
   <span class="s">"password_confirmation"</span>: <span class="s">"NewPass123"</span>
 }
-<span class="c">// 200 — tous les tokens révoqués</span></pre></div>
-    </div>
-  </div>
-</section>
+<span class="c">// 200 — tous les tokens révoqués</span></pre>
+              </div>
+            </div>
+          </div>
+        </section>
 
-<!-- SCHEMA BDD -->
-<section id="schema">
-  <h2><span class="icon">🗄</span> <span data-i18n="db_title">Base de données</span></h2>
-  <p data-i18n="db_desc">Résultat de <code>php artisan migrate</code> — tables créées et vérifiées dans phpMyAdmin.</p>
-  <div class="db-overview">
-    <div class="db-header">
-      <span>🗃</span>
-      <span class="db-name">construcsen_group_api</span>
-      <span class="db-count">10 tables</span>
-    </div>
-    <div class="db-tables-list">
-      <div class="db-table-row origin-kit"><span class="db-table-name">auth_kit_activity_logs</span><span class="db-badge kit">Auth Kit</span></div>
-      <div class="db-table-row origin-kit"><span class="db-table-name">auth_kit_password_reset_otps</span><span class="db-badge kit">Auth Kit</span></div>
-      <div class="db-table-row origin-spatie"><span class="db-table-name">model_has_permissions</span><span class="db-badge spatie">Spatie</span></div>
-      <div class="db-table-row origin-spatie"><span class="db-table-name">model_has_roles</span><span class="db-badge spatie">Spatie</span></div>
-      <div class="db-table-row origin-spatie"><span class="db-table-name">permissions</span><span class="db-badge spatie">Spatie</span></div>
-      <div class="db-table-row origin-sanctum"><span class="db-table-name">personal_access_tokens</span><span class="db-badge sanctum">Sanctum</span></div>
-      <div class="db-table-row origin-spatie"><span class="db-table-name">roles</span><span class="db-badge spatie">Spatie</span></div>
-      <div class="db-table-row origin-spatie"><span class="db-table-name">role_has_permissions</span><span class="db-badge spatie">Spatie</span></div>
-      <div class="db-table-row origin-laravel"><span class="db-table-name">migrations</span><span class="db-badge laravel">Laravel</span></div>
-      <div class="db-table-row origin-laravel"><span class="db-table-name">users</span><span class="db-badge laravel">Laravel + Auth Kit</span></div>
-    </div>
-  </div>
-  <div class="callout callout-ok" style="margin-top:1.5rem">
-    <span class="callout-icon">✓</span>
-    <span data-i18n="db_confirm">Tables model_has_roles et model_has_permissions vérifiées — colonnes role_id / permission_id, model_type, model_id confirmées.</span>
-  </div>
-  <h3 data-i18n="db_schemas">Schémas détaillés</h3>
-  <div class="schema-grid">
-    <div class="schema-table">
-      <div class="schema-table-header">users</div>
-      <div class="schema-row"><span class="col-name">id</span><span><span class="col-key">PK</span> <span class="col-type">bigint unsigned</span></span></div>
-      <div class="schema-row"><span class="col-name">first_name</span><span class="col-type">varchar(100)</span></div>
-      <div class="schema-row"><span class="col-name">last_name</span><span class="col-type">varchar(100)</span></div>
-      <div class="schema-row"><span class="col-name">email</span><span><span class="col-key">UQ</span> <span class="col-type">varchar(191)</span></span></div>
-      <div class="schema-row"><span class="col-name">phone</span><span class="col-type">varchar(30) nullable</span></div>
-      <div class="schema-row"><span class="col-name">email_verified_at</span><span class="col-type">timestamp nullable</span></div>
-      <div class="schema-row"><span class="col-name">password</span><span class="col-type">varchar</span></div>
-      <div class="schema-row"><span class="col-name">must_change_password</span><span class="col-type">tinyint(1) default 0</span></div>
-      <div class="schema-row"><span class="col-name">remember_token</span><span class="col-type">varchar(100) nullable</span></div>
-      <div class="schema-row"><span class="col-name">status</span><span class="col-type">enum(active,inactive,banned)</span></div>
-      <div class="schema-row"><span class="col-name">created_at / updated_at</span><span class="col-type">timestamps</span></div>
-    </div>
-    <div class="schema-table">
-      <div class="schema-table-header">auth_kit_activity_logs</div>
-      <div class="schema-row"><span class="col-name">id</span><span><span class="col-key">PK</span> <span class="col-type">bigint unsigned</span></span></div>
-      <div class="schema-row"><span class="col-name">user_id</span><span><span class="col-key">FK</span> <span class="col-type">nullable</span></span></div>
-      <div class="schema-row"><span class="col-name">event</span><span><span class="col-key">IDX</span> <span class="col-type">varchar(64)</span></span></div>
-      <div class="schema-row"><span class="col-name">action</span><span class="col-type">varchar(20) nullable</span></div>
-      <div class="schema-row"><span class="col-name">subject_type / subject_id</span><span class="col-type">polymorphe</span></div>
-      <div class="schema-row"><span class="col-name">ip_address</span><span class="col-type">varchar(45) IPv6</span></div>
-      <div class="schema-row"><span class="col-name">device_type / browser / os</span><span class="col-type">varchar</span></div>
-      <div class="schema-row"><span class="col-name">country / city / lat / lng</span><span class="col-type">géolocalisation</span></div>
-      <div class="schema-row"><span class="col-name">metadata</span><span class="col-type">json nullable</span></div>
-      <div class="schema-row"><span class="col-name">created_at</span><span class="col-type">timestamp (immuable)</span></div>
-    </div>
-    <div class="schema-table">
-      <div class="schema-table-header">auth_kit_password_reset_otps</div>
-      <div class="schema-row"><span class="col-name">id</span><span><span class="col-key">PK</span> <span class="col-type">bigint unsigned</span></span></div>
-      <div class="schema-row"><span class="col-name">email</span><span><span class="col-key">IDX</span> <span class="col-type">varchar</span></span></div>
-      <div class="schema-row"><span class="col-name">otp</span><span class="col-type">varchar hashé</span></div>
-      <div class="schema-row"><span class="col-name">reset_token</span><span class="col-type">varchar nullable</span></div>
-      <div class="schema-row"><span class="col-name">expires_at / used_at</span><span class="col-type">timestamps</span></div>
-    </div>
-    <div class="schema-table">
-      <div class="schema-table-header">model_has_roles / model_has_permissions</div>
-      <div class="schema-row"><span class="col-name">role_id / permission_id</span><span><span class="col-key">FK</span> <span class="col-type">bigint</span></span></div>
-      <div class="schema-row"><span class="col-name">model_type</span><span class="col-type">App\Models\User</span></div>
-      <div class="schema-row"><span class="col-name">model_id</span><span class="col-type">bigint unsigned</span></div>
-    </div>
-  </div>
-</section>
+        <!-- SCHEMA BDD -->
+        <section id="schema">
+          <h2>
+            <span class="icon">🗄</span>
+            <span data-i18n="db_title">Base de données</span>
+          </h2>
+          <p data-i18n="db_desc">
+            Résultat de <code>php artisan migrate</code> — tables créées et
+            vérifiées dans phpMyAdmin.
+          </p>
+          <div class="db-overview">
+            <div class="db-header">
+              <span>🗃</span>
+              <span class="db-name">construcsen_group_api</span>
+              <span class="db-count">10 tables</span>
+            </div>
+            <div class="db-tables-list">
+              <div class="db-table-row origin-kit">
+                <span class="db-table-name">auth_kit_activity_logs</span
+                ><span class="db-badge kit">Auth Kit</span>
+              </div>
+              <div class="db-table-row origin-kit">
+                <span class="db-table-name">auth_kit_password_reset_otps</span
+                ><span class="db-badge kit">Auth Kit</span>
+              </div>
+              <div class="db-table-row origin-spatie">
+                <span class="db-table-name">model_has_permissions</span
+                ><span class="db-badge spatie">Spatie</span>
+              </div>
+              <div class="db-table-row origin-spatie">
+                <span class="db-table-name">model_has_roles</span
+                ><span class="db-badge spatie">Spatie</span>
+              </div>
+              <div class="db-table-row origin-spatie">
+                <span class="db-table-name">permissions</span
+                ><span class="db-badge spatie">Spatie</span>
+              </div>
+              <div class="db-table-row origin-sanctum">
+                <span class="db-table-name">personal_access_tokens</span
+                ><span class="db-badge sanctum">Sanctum</span>
+              </div>
+              <div class="db-table-row origin-spatie">
+                <span class="db-table-name">roles</span
+                ><span class="db-badge spatie">Spatie</span>
+              </div>
+              <div class="db-table-row origin-spatie">
+                <span class="db-table-name">role_has_permissions</span
+                ><span class="db-badge spatie">Spatie</span>
+              </div>
+              <div class="db-table-row origin-laravel">
+                <span class="db-table-name">migrations</span
+                ><span class="db-badge laravel">Laravel</span>
+              </div>
+              <div class="db-table-row origin-laravel">
+                <span class="db-table-name">users</span
+                ><span class="db-badge laravel">Laravel + Auth Kit</span>
+              </div>
+            </div>
+          </div>
+          <div class="callout callout-ok" style="margin-top: 1.5rem">
+            <span class="callout-icon">✓</span>
+            <span data-i18n="db_confirm"
+              >Tables model_has_roles et model_has_permissions vérifiées —
+              colonnes role_id / permission_id, model_type, model_id
+              confirmées.</span
+            >
+          </div>
+          <h3 data-i18n="db_schemas">Schémas détaillés</h3>
+          <div class="schema-grid">
+            <div class="schema-table">
+              <div class="schema-table-header">users</div>
+              <div class="schema-row">
+                <span class="col-name">id</span
+                ><span
+                  ><span class="col-key">PK</span>
+                  <span class="col-type">bigint unsigned</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">first_name</span
+                ><span class="col-type">varchar(100)</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">last_name</span
+                ><span class="col-type">varchar(100)</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">email</span
+                ><span
+                  ><span class="col-key">UQ</span>
+                  <span class="col-type">varchar(191)</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">phone</span
+                ><span class="col-type">varchar(30) nullable</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">email_verified_at</span
+                ><span class="col-type">timestamp nullable</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">password</span
+                ><span class="col-type">varchar</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">must_change_password</span
+                ><span class="col-type">tinyint(1) default 0</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">remember_token</span
+                ><span class="col-type">varchar(100) nullable</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">status</span
+                ><span class="col-type">enum(active,inactive,banned)</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">created_at / updated_at</span
+                ><span class="col-type">timestamps</span>
+              </div>
+            </div>
+            <div class="schema-table">
+              <div class="schema-table-header">auth_kit_activity_logs</div>
+              <div class="schema-row">
+                <span class="col-name">id</span
+                ><span
+                  ><span class="col-key">PK</span>
+                  <span class="col-type">bigint unsigned</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">user_id</span
+                ><span
+                  ><span class="col-key">FK</span>
+                  <span class="col-type">nullable</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">event</span
+                ><span
+                  ><span class="col-key">IDX</span>
+                  <span class="col-type">varchar(64)</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">action</span
+                ><span class="col-type">varchar(20) nullable</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">subject_type / subject_id</span
+                ><span class="col-type">polymorphe</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">ip_address</span
+                ><span class="col-type">varchar(45) IPv6</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">device_type / browser / os</span
+                ><span class="col-type">varchar</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">country / city / lat / lng</span
+                ><span class="col-type">géolocalisation</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">metadata</span
+                ><span class="col-type">json nullable</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">created_at</span
+                ><span class="col-type">timestamp (immuable)</span>
+              </div>
+            </div>
+            <div class="schema-table">
+              <div class="schema-table-header">
+                auth_kit_password_reset_otps
+              </div>
+              <div class="schema-row">
+                <span class="col-name">id</span
+                ><span
+                  ><span class="col-key">PK</span>
+                  <span class="col-type">bigint unsigned</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">email</span
+                ><span
+                  ><span class="col-key">IDX</span>
+                  <span class="col-type">varchar</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">otp</span
+                ><span class="col-type">varchar hashé</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">reset_token</span
+                ><span class="col-type">varchar nullable</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">expires_at / used_at</span
+                ><span class="col-type">timestamps</span>
+              </div>
+            </div>
+            <div class="schema-table">
+              <div class="schema-table-header">
+                model_has_roles / model_has_permissions
+              </div>
+              <div class="schema-row">
+                <span class="col-name">role_id / permission_id</span
+                ><span
+                  ><span class="col-key">FK</span>
+                  <span class="col-type">bigint</span></span
+                >
+              </div>
+              <div class="schema-row">
+                <span class="col-name">model_type</span
+                ><span class="col-type">App\Models\User</span>
+              </div>
+              <div class="schema-row">
+                <span class="col-name">model_id</span
+                ><span class="col-type">bigint unsigned</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-<!-- LOGS -->
-<section id="logs">
-  <h2><span class="icon">📊</span> <span data-i18n="logs_title">Logs d'activité</span></h2>
-  <p data-i18n="logs_desc">Chaque action importante est automatiquement journalisée avec contexte complet.</p>
-  <div class="code-block"><div class="code-header"><span class="code-lang">json · <span data-i18n="log_example">Exemple de log</span></span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-  <pre>{
+        <!-- LOGS -->
+        <section id="logs">
+          <h2>
+            <span class="icon">📊</span>
+            <span data-i18n="logs_title">Logs d'activité</span>
+          </h2>
+          <p data-i18n="logs_desc">
+            Chaque action importante est automatiquement journalisée avec
+            contexte complet.
+          </p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang"
+                >json ·
+                <span data-i18n="log_example">Exemple de log</span></span
+              ><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>
+                copier
+              </button>
+            </div>
+            <pre>{
   <span class="k">"id"</span>:           <span class="n">42</span>,
   <span class="k">"user_id"</span>:      <span class="n">7</span>,
   <span class="k">"event"</span>:        <span class="s">"profile_updated"</span>,
@@ -580,256 +2021,951 @@ Role::findByName(<span class="s">'super-admin'</span>, <span class="s">'sanctum'
   <span class="k">"longitude"</span>:    <span class="n">-17.4467</span>,
   <span class="k">"metadata"</span>:     { <span class="s">"updated_fields"</span>: [<span class="s">"email"</span>, <span class="s">"phone"</span>] },
   <span class="k">"created_at"</span>:   <span class="s">"2025-03-11T14:42:00Z"</span>
-}</pre></div>
-</section>
+}</pre>
+          </div>
+        </section>
 
-<!-- MODES INSCRIPTION -->
-<section id="modes">
-  <h2><span class="icon">👥</span> <span data-i18n="modes_title">Modes d'inscription</span></h2>
-  <div class="two-col">
-    <div class="card">
-      <h3 style="margin-top:0">Mode <code>self</code></h3>
-      <p data-i18n="mode_self_desc">L'utilisateur s'inscrit via POST /api/auth/register avec son propre mot de passe. Route publique.</p>
-      <div class="code-block" style="margin-bottom:0"><div class="code-header"><span class="code-lang">config</span></div><pre><span class="s">'mode'</span> =&gt; <span class="s">'self'</span></pre></div>
-    </div>
-    <div class="card">
-      <h3 style="margin-top:0">Mode <code>admin</code></h3>
-      <p data-i18n="mode_admin_desc">Route /register désactivée. Un admin (create-user) crée les comptes. Mot de passe temporaire envoyé par email.</p>
-      <div class="code-block" style="margin-bottom:0"><div class="code-header"><span class="code-lang">config</span></div><pre><span class="s">'mode'</span> =&gt; <span class="s">'admin'</span></pre></div>
-    </div>
-  </div>
-</section>
+        <!-- MODES INSCRIPTION -->
+        <section id="modes">
+          <h2>
+            <span class="icon">👥</span>
+            <span data-i18n="modes_title">Modes d'inscription</span>
+          </h2>
+          <div class="two-col">
+            <div class="card">
+              <h3 style="margin-top: 0">Mode <code>self</code></h3>
+              <p data-i18n="mode_self_desc">
+                L'utilisateur s'inscrit via POST /api/auth/register avec son
+                propre mot de passe. Route publique.
+              </p>
+              <div class="code-block" style="margin-bottom: 0">
+                <div class="code-header">
+                  <span class="code-lang">config</span>
+                </div>
+                <pre><span class="s">'mode'</span> =&gt; <span class="s">'self'</span></pre>
+              </div>
+            </div>
+            <div class="card">
+              <h3 style="margin-top: 0">Mode <code>admin</code></h3>
+              <p data-i18n="mode_admin_desc">
+                Route /register désactivée. Un admin (create-user) crée les
+                comptes. Mot de passe temporaire envoyé par email.
+              </p>
+              <div class="code-block" style="margin-bottom: 0">
+                <div class="code-header">
+                  <span class="code-lang">config</span>
+                </div>
+                <pre><span class="s">'mode'</span> =&gt; <span class="s">'admin'</span></pre>
+              </div>
+            </div>
+          </div>
+        </section>
 
-<!-- MODES LOGOUT -->
-<section id="logout-modes">
-  <h2><span class="icon">🚪</span> <span data-i18n="logout_title">Modes de déconnexion</span></h2>
-  <div class="code-block"><div class="code-header"><span class="code-lang">POST /api/auth/logout</span><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>copier</button></div>
-  <pre><span class="c">// Session courante (défaut)</span>
+        <!-- MODES LOGOUT -->
+        <section id="logout-modes">
+          <h2>
+            <span class="icon">🚪</span>
+            <span data-i18n="logout_title">Modes de déconnexion</span>
+          </h2>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">POST /api/auth/logout</span
+              ><button class="copy-btn" onclick="copyCode(this)" data-i18n-copy>
+                copier
+              </button>
+            </div>
+            <pre><span class="c">// Session courante (défaut)</span>
 { <span class="s">"mode"</span>: <span class="s">"current"</span> }
 
 <span class="c">// Session précise (ID via GET /auth/sessions)</span>
 { <span class="s">"mode"</span>: <span class="s">"specific"</span>, <span class="s">"token_id"</span>: <span class="n">12</span> }
 
 <span class="c">// Toutes les sessions</span>
-{ <span class="s">"mode"</span>: <span class="s">"all"</span> }</pre></div>
-</section>
+{ <span class="s">"mode"</span>: <span class="s">"all"</span> }</pre>
+          </div>
+        </section>
 
-<!-- STATUS -->
-<section id="status">
-  <h2><span class="icon">🚦</span> <span data-i18n="status_title">Statut des comptes</span></h2>
-  <div class="table-wrap"><table>
-    <thead><tr><th data-i18n="th_status">Statut</th><th data-i18n="th_login">Login</th><th data-i18n="th_desc">Description</th></tr></thead>
-    <tbody>
-      <tr><td><code style="color:var(--accent)">active</code></td><td>✅</td><td data-i18n="status_active">Compte normal, accès complet</td></tr>
-      <tr><td><code style="color:var(--warn)">inactive</code></td><td>❌ 403</td><td data-i18n="status_inactive">Compte désactivé temporairement</td></tr>
-      <tr><td><code style="color:var(--danger)">banned</code></td><td>❌ 403</td><td data-i18n="status_banned">Compte banni définitivement</td></tr>
-    </tbody>
-  </table></div>
-  <div class="callout callout-warn">
-    <span class="callout-icon">⚠</span>
-    <span data-i18n="status_warn">Le status ne peut être modifié que via une route admin personnalisée. Il n'est pas dans les editable_fields par défaut.</span>
-  </div>
-</section>
+        <!-- STATUS -->
+        <section id="status">
+          <h2>
+            <span class="icon">🚦</span>
+            <span data-i18n="status_title">Statut des comptes</span>
+          </h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_status">Statut</th>
+                  <th data-i18n="th_login">Login</th>
+                  <th data-i18n="th_desc">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code style="color: var(--accent)">active</code></td>
+                  <td>✅</td>
+                  <td data-i18n="status_active">
+                    Compte normal, accès complet
+                  </td>
+                </tr>
+                <tr>
+                  <td><code style="color: var(--warn)">inactive</code></td>
+                  <td>❌ 403</td>
+                  <td data-i18n="status_inactive">
+                    Compte désactivé temporairement
+                  </td>
+                </tr>
+                <tr>
+                  <td><code style="color: var(--danger)">banned</code></td>
+                  <td>❌ 403</td>
+                  <td data-i18n="status_banned">Compte banni définitivement</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠</span>
+            <span data-i18n="status_warn"
+              >Le status ne peut être modifié que via une route admin
+              personnalisée. Il n'est pas dans les editable_fields par
+              défaut.</span
+            >
+          </div>
+        </section>
+      </main>
+    </div>
 
-</main>
-</div>
+    <footer>
+      <div class="footer-brand">
+        <div class="nav-logo">S3</div>
+        <span><strong>S3Tech Group</strong> — Laravel Auth Kit v1.1.0</span>
+      </div>
+      <span
+        >MIT ·
+        <a
+          href="https://packagist.org/packages/s3tech/laravel-auth-kit"
+          style="color: var(--accent); text-decoration: none"
+          >packagist.org</a
+        ></span
+      >
+    </footer>
 
-<footer>
-  <div class="footer-brand">
-    <div class="nav-logo">S3</div>
-    <span><strong>S3Tech Group</strong> — Laravel Auth Kit v1.0.0</span>
-  </div>
-  <span>MIT · <a href="https://packagist.org/packages/s3tech/laravel-auth-kit" style="color:var(--accent);text-decoration:none">packagist.org</a></span>
-</footer>
+    <script>
+      /* ═══════════ TRANSLATIONS ═══════════ */
+      const T = {
+        fr: {
+          hero_desc:
+            "Package Laravel <strong>plug-and-play</strong> pour les projets API. Installez-le et tout est prêt : authentification Sanctum, profil, reset OTP, rôles Spatie et logs d'activité complets.",
+          sb_start: "Démarrage",
+          sb_intro: "Introduction",
+          sb_install: "Installation",
+          sb_user: "Modèle User",
+          sb_config: "Configuration",
+          sb_seeder: "Seeder rôles",
+          sb_routes: "Toutes les routes",
+          sb_auth: "Authentification",
+          sb_profile: "Profil",
+          sb_otp: "Reset OTP",
+          sb_roles: "Rôles & Permissions",
+          sb_advanced: "Avancé",
+          sb_db: "Base de données",
+          sb_logs: "Logs d'activité",
+          sb_modes: "Modes d'inscription",
+          sb_logout: "Modes logout",
+          sb_status: "Statut compte",
+          feat_title: "Fonctionnalités",
+          feat1_t: "Authentification Sanctum",
+          feat1_d:
+            "Login, logout multi-mode, /me, liste des sessions actives avec révocation ciblée",
+          feat2_t: "Gestion de profil",
+          feat2_d:
+            "Prénom, nom, email, téléphone. Champs configurables. Statut non modifiable par l'utilisateur.",
+          feat3_t: "Reset mot de passe OTP",
+          feat3_d:
+            "Flux 3 étapes : email → code OTP → reset_token → nouveau mot de passe",
+          feat4_t: "Rôles & Permissions",
+          feat4_d:
+            "CRUD complet via Spatie Laravel Permission. Assignation rôle↔permission et utilisateur↔rôle.",
+          feat5_t: "Logs d'activité",
+          feat5_d:
+            "IP réelle, appareil, OS, navigateur, géolocalisation GPS, action CRUD et ressource cible.",
+          feat6_t: "Mode Admin",
+          feat6_d:
+            "Création de comptes par admin avec mot de passe temporaire. Statut active/inactive/banned.",
+          install_title: "Installation",
+          step1: "Installer via Composer",
+          step2: "Publier les fichiers",
+          step3: "Migrer",
+          step4: "Configurer le modèle User",
+          step5: "Guard Spatie = sanctum",
+          migrate_ok:
+            "Toutes les tables sont créées : users, auth_kit_activity_logs, auth_kit_password_reset_otps, tables Spatie et Sanctum.",
+          seeder_title: "Seeder de rôles initiaux",
+          seeder_desc:
+            "À exécuter une seule fois pour initialiser les rôles et permissions de base.",
+          config_title: "Configuration",
+          config_desc:
+            "Après vendor:publish, le fichier config/auth-kit.php est disponible.",
+          messages_desc:
+            "Les réponses API sont bilingues (anglais/français). Par défaut, <code>message</code> et <code>error</code> sont renvoyés en anglais, tandis que les traductions restent disponibles dans <code>message_translations</code> ou <code>error_translations</code>. Les erreurs de validation des FormRequest suivent la même logique via <code>errors</code> et <code>errors_translations</code>. Vous pouvez forcer le français avec <code>X-Auth-Kit-Locale: fr</code> ou <code>?lang=fr</code>.",
+          messages_example: "Exemple de réponse bilingue",
+          validation_example: "Exemple de réponse de validation",
+          routes_title: "Routes disponibles",
+          routes_public: "Authentification — Publiques",
+          routes_protected: "Authentification — Protégées 🔒",
+          routes_profile: "Profil 🔒",
+          routes_roles: "Rôles & Permissions 🔒",
+          routes_logs: "Logs 🔒",
+          th_method: "Méthode",
+          th_desc: "Description",
+          th_cond: "Condition",
+          th_perm: "Permission",
+          th_status: "Statut",
+          th_login: "Login",
+          r_register: "Inscription autonome",
+          r_register_cond: "Mode self uniquement",
+          r_login: "Connexion → token",
+          r_forgot: "Envoi OTP par email",
+          r_verify: "Vérifier OTP → reset_token",
+          r_reset: "Nouveau mot de passe",
+          r_me: "Utilisateur connecté (rôles + permissions)",
+          r_logout: "Déconnexion (3 modes)",
+          r_sessions: "Liste des sessions actives",
+          r_profile_update: "Modifier son profil",
+          r_password: "Changer son mot de passe",
+          r_create_user: "Créer un utilisateur (admin)",
+          r_update_user: "Modifier profil d'un utilisateur",
+          r_roles_list: "Lister les rôles",
+          r_roles_create: "Créer un rôle",
+          r_roles_delete: "Supprimer un rôle",
+          r_perms_list: "Lister les permissions",
+          r_perms_create: "Créer une permission",
+          r_assign_perm: "Assigner permission → rôle",
+          r_revoke_perm: "Révoquer permission d'un rôle",
+          r_assign_role: "Assigner rôle → utilisateur",
+          r_revoke_role: "Révoquer rôle d'un utilisateur",
+          r_logs_me: "Mes propres logs",
+          r_logs_user: "Logs d'un utilisateur",
+          r_logs_all: "Tous les logs",
+          filters_hint:
+            "Filtres : ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
+          otp_title: "Flux Reset OTP",
+          otp_desc:
+            "Processus en 3 étapes pour réinitialiser un mot de passe oublié.",
+          otp_step1: "1. Envoyer OTP",
+          otp_step2: "2. Vérifier OTP",
+          otp_step3: "3. Nouveau mot de passe",
+          db_title: "Base de données",
+          db_desc:
+            "Résultat de php artisan migrate — tables créées et vérifiées dans phpMyAdmin.",
+          db_confirm:
+            "Tables model_has_roles et model_has_permissions vérifiées — colonnes role_id / permission_id, model_type, model_id confirmées.",
+          db_schemas: "Schémas détaillés",
+          logs_title: "Logs d'activité",
+          logs_desc:
+            "Chaque action importante est automatiquement journalisée avec contexte complet.",
+          log_example: "Exemple de log",
+          modes_title: "Modes d'inscription",
+          mode_self_desc:
+            "L'utilisateur s'inscrit via POST /api/auth/register avec son propre mot de passe. Route publique.",
+          mode_admin_desc:
+            "Route /register désactivée. Un admin (create-user) crée les comptes. Mot de passe temporaire envoyé par email.",
+          logout_title: "Modes de déconnexion",
+          status_title: "Statut des comptes",
+          status_active: "Compte normal, accès complet",
+          status_inactive: "Compte désactivé temporairement",
+          status_banned: "Compte banni définitivement",
+          status_warn:
+            "Le status ne peut être modifié que via une route admin personnalisée. Il n'est pas dans les editable_fields par défaut.",
+          copy: "copier",
+          copied: "✓ copié",
+        },
+        en: {
+          hero_desc:
+            "A <strong>plug-and-play</strong> Laravel package for API projects. Install it and everything is ready: Sanctum auth, profile, OTP reset, Spatie roles and complete activity logs.",
+          sb_start: "Getting started",
+          sb_intro: "Introduction",
+          sb_install: "Installation",
+          sb_user: "User model",
+          sb_config: "Configuration",
+          sb_seeder: "Roles seeder",
+          sb_routes: "All routes",
+          sb_auth: "Authentication",
+          sb_profile: "Profile",
+          sb_otp: "OTP Reset",
+          sb_roles: "Roles & Permissions",
+          sb_advanced: "Advanced",
+          sb_db: "Database",
+          sb_logs: "Activity logs",
+          sb_modes: "Registration modes",
+          sb_logout: "Logout modes",
+          sb_status: "Account status",
+          feat_title: "Features",
+          feat1_t: "Sanctum Authentication",
+          feat1_d:
+            "Login, multi-mode logout, /me, active sessions list with targeted revocation",
+          feat2_t: "Profile management",
+          feat2_d:
+            "First name, last name, email, phone. Configurable fields. Status not modifiable by the user.",
+          feat3_t: "OTP Password Reset",
+          feat3_d:
+            "3-step flow: email → 6-digit OTP code → reset_token → new password",
+          feat4_t: "Roles & Permissions",
+          feat4_d:
+            "Full CRUD via Spatie Laravel Permission. Role↔permission and user↔role assignment.",
+          feat5_t: "Activity logs",
+          feat5_d:
+            "Real IP, device, OS, browser, GPS geolocation, CRUD action and target resource.",
+          feat6_t: "Admin mode",
+          feat6_d:
+            "Account creation by admin with temporary password sent by email. Status active/inactive/banned.",
+          install_title: "Installation",
+          step1: "Install via Composer",
+          step2: "Publish files",
+          step3: "Migrate",
+          step4: "Configure User model",
+          step5: "Spatie guard = sanctum",
+          migrate_ok:
+            "All tables are created: users, auth_kit_activity_logs, auth_kit_password_reset_otps, Spatie and Sanctum tables.",
+          seeder_title: "Initial roles seeder",
+          seeder_desc: "Run once to initialize base roles and permissions.",
+          config_title: "Configuration",
+          config_desc:
+            "After vendor:publish, the config/auth-kit.php file is available.",
+          messages_desc:
+            "API responses are bilingual (English/French). By default, <code>message</code> and <code>error</code> are returned in English, while translations remain available in <code>message_translations</code> or <code>error_translations</code>. Validation errors from FormRequest follow the same approach via <code>errors</code> and <code>errors_translations</code>. You can force French with <code>X-Auth-Kit-Locale: fr</code> or <code>?lang=fr</code>.",
+          messages_example: "Bilingual response example",
+          validation_example: "Validation response example",
+          routes_title: "Available routes",
+          routes_public: "Authentication — Public",
+          routes_protected: "Authentication — Protected 🔒",
+          routes_profile: "Profile 🔒",
+          routes_roles: "Roles & Permissions 🔒",
+          routes_logs: "Logs 🔒",
+          th_method: "Method",
+          th_desc: "Description",
+          th_cond: "Condition",
+          th_perm: "Permission",
+          th_status: "Status",
+          th_login: "Login",
+          r_register: "Self registration",
+          r_register_cond: "Mode self only",
+          r_login: "Login → token",
+          r_forgot: "Send OTP by email",
+          r_verify: "Verify OTP → reset_token",
+          r_reset: "New password",
+          r_me: "Authenticated user (roles + permissions)",
+          r_logout: "Logout (3 modes)",
+          r_sessions: "Active sessions list",
+          r_profile_update: "Update own profile",
+          r_password: "Change own password",
+          r_create_user: "Create user (admin)",
+          r_update_user: "Update another user's profile",
+          r_roles_list: "List roles",
+          r_roles_create: "Create role",
+          r_roles_delete: "Delete role",
+          r_perms_list: "List permissions",
+          r_perms_create: "Create permission",
+          r_assign_perm: "Assign permission → role",
+          r_revoke_perm: "Revoke permission from role",
+          r_assign_role: "Assign role → user",
+          r_revoke_role: "Revoke role from user",
+          r_logs_me: "My own logs",
+          r_logs_user: "User's logs",
+          r_logs_all: "All logs",
+          filters_hint:
+            "Filters: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
+          otp_title: "OTP Reset Flow",
+          otp_desc: "3-step process to reset a forgotten password.",
+          otp_step1: "1. Send OTP",
+          otp_step2: "2. Verify OTP",
+          otp_step3: "3. New password",
+          db_title: "Database",
+          db_desc:
+            "Result of php artisan migrate — tables created and verified in phpMyAdmin.",
+          db_confirm:
+            "Tables model_has_roles and model_has_permissions verified — columns role_id / permission_id, model_type, model_id confirmed.",
+          db_schemas: "Detailed schemas",
+          logs_title: "Activity logs",
+          logs_desc:
+            "Every important action is automatically logged with full context.",
+          log_example: "Log example",
+          modes_title: "Registration modes",
+          mode_self_desc:
+            "User registers via POST /api/auth/register with their own password. Public route.",
+          mode_admin_desc:
+            "Route /register disabled. An admin (create-user) creates accounts. Temporary password sent by email.",
+          logout_title: "Logout modes",
+          status_title: "Account status",
+          status_active: "Normal account, full access",
+          status_inactive: "Temporarily disabled account",
+          status_banned: "Permanently banned account",
+          status_warn:
+            "Status can only be modified via a custom admin route. It is not in the default editable_fields.",
+          copy: "copy",
+          copied: "✓ copied",
+        },
+        ar: {
+          hero_desc:
+            "حزمة Laravel <strong>جاهزة للاستخدام</strong> لمشاريع API. ثبّتها ويصبح كل شيء جاهزاً: مصادقة Sanctum، الملف الشخصي، إعادة تعيين كلمة المرور بـ OTP، أدوار Spatie وسجلات النشاط.",
+          sb_start: "البداية",
+          sb_intro: "مقدمة",
+          sb_install: "التثبيت",
+          sb_user: "نموذج User",
+          sb_config: "الإعداد",
+          sb_seeder: "بذر الأدوار",
+          sb_routes: "جميع المسارات",
+          sb_auth: "المصادقة",
+          sb_profile: "الملف الشخصي",
+          sb_otp: "إعادة تعيين OTP",
+          sb_roles: "الأدوار والصلاحيات",
+          sb_advanced: "متقدم",
+          sb_db: "قاعدة البيانات",
+          sb_logs: "سجلات النشاط",
+          sb_modes: "أوضاع التسجيل",
+          sb_logout: "أوضاع تسجيل الخروج",
+          sb_status: "حالة الحساب",
+          feat_title: "المميزات",
+          feat1_t: "مصادقة Sanctum",
+          feat1_d:
+            "تسجيل الدخول، تسجيل الخروج متعدد الأوضاع، /me، قائمة الجلسات النشطة مع الإلغاء المستهدف",
+          feat2_t: "إدارة الملف الشخصي",
+          feat2_d:
+            "الاسم الأول، الكنية، البريد الإلكتروني، الهاتف. حقول قابلة للإعداد. لا يمكن للمستخدم تعديل الحالة.",
+          feat3_t: "إعادة تعيين كلمة المرور OTP",
+          feat3_d:
+            "خطوات 3: البريد الإلكتروني ← رمز OTP ← reset_token ← كلمة مرور جديدة",
+          feat4_t: "الأدوار والصلاحيات",
+          feat4_d: "إدارة كاملة عبر Spatie Laravel Permission.",
+          feat5_t: "سجلات النشاط",
+          feat5_d:
+            "IP الحقيقي، الجهاز، نظام التشغيل، المتصفح، الموقع الجغرافي GPS.",
+          feat6_t: "وضع المشرف",
+          feat6_d:
+            "إنشاء الحسابات بواسطة المشرف مع كلمة مرور مؤقتة. الحالة: active/inactive/banned.",
+          install_title: "التثبيت",
+          step1: "التثبيت عبر Composer",
+          step2: "نشر الملفات",
+          step3: "تطبيق الترحيل",
+          step4: "إعداد نموذج User",
+          step5: "Guard Spatie = sanctum",
+          migrate_ok: "تم إنشاء جميع الجداول بنجاح.",
+          seeder_title: "بذر الأدوار الأولية",
+          seeder_desc: "يُنفَّذ مرة واحدة لتهيئة الأدوار والصلاحيات الأساسية.",
+          config_title: "الإعداد",
+          config_desc:
+            "بعد vendor:publish، يصبح الملف config/auth-kit.php متاحاً.",
+          routes_title: "المسارات المتاحة",
+          routes_public: "المصادقة — عامة",
+          routes_protected: "المصادقة — محمية 🔒",
+          routes_profile: "الملف الشخصي 🔒",
+          routes_roles: "الأدوار والصلاحيات 🔒",
+          routes_logs: "السجلات 🔒",
+          th_method: "الطريقة",
+          th_desc: "الوصف",
+          th_cond: "الشرط",
+          th_perm: "الصلاحية",
+          th_status: "الحالة",
+          th_login: "الدخول",
+          r_register: "التسجيل الذاتي",
+          r_register_cond: "وضع self فقط",
+          r_login: "تسجيل الدخول → token",
+          r_forgot: "إرسال OTP بالبريد",
+          r_verify: "التحقق من OTP → reset_token",
+          r_reset: "كلمة مرور جديدة",
+          r_me: "المستخدم المتصل (الأدوار + الصلاحيات)",
+          r_logout: "تسجيل الخروج (3 أوضاع)",
+          r_sessions: "قائمة الجلسات النشطة",
+          r_profile_update: "تعديل الملف الشخصي",
+          r_password: "تغيير كلمة المرور",
+          r_create_user: "إنشاء مستخدم (مشرف)",
+          r_update_user: "تعديل ملف مستخدم آخر",
+          r_roles_list: "عرض الأدوار",
+          r_roles_create: "إنشاء دور",
+          r_roles_delete: "حذف دور",
+          r_perms_list: "عرض الصلاحيات",
+          r_perms_create: "إنشاء صلاحية",
+          r_assign_perm: "تعيين صلاحية للدور",
+          r_revoke_perm: "سحب صلاحية من دور",
+          r_assign_role: "تعيين دور للمستخدم",
+          r_revoke_role: "سحب دور من مستخدم",
+          r_logs_me: "سجلاتي",
+          r_logs_user: "سجلات مستخدم",
+          r_logs_all: "جميع السجلات",
+          filters_hint:
+            "الفلاتر: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
+          otp_title: "خطوات إعادة تعيين OTP",
+          otp_desc: "عملية من 3 خطوات لإعادة تعيين كلمة المرور المنسية.",
+          otp_step1: "1. إرسال OTP",
+          otp_step2: "2. التحقق من OTP",
+          otp_step3: "3. كلمة مرور جديدة",
+          db_title: "قاعدة البيانات",
+          db_desc:
+            "نتيجة php artisan migrate — الجداول المنشأة والمتحقق منها في phpMyAdmin.",
+          db_confirm:
+            "تم التحقق من جداول model_has_roles وmodel_has_permissions.",
+          db_schemas: "مخططات مفصّلة",
+          logs_title: "سجلات النشاط",
+          logs_desc: "يتم تسجيل كل إجراء مهم تلقائياً مع السياق الكامل.",
+          log_example: "مثال على السجل",
+          modes_title: "أوضاع التسجيل",
+          mode_self_desc:
+            "يسجل المستخدم بنفسه عبر POST /api/auth/register بكلمة مروره الخاصة.",
+          mode_admin_desc:
+            "مسار /register معطل. المشرف فقط يمكنه إنشاء حسابات مع كلمة مرور مؤقتة.",
+          logout_title: "أوضاع تسجيل الخروج",
+          status_title: "حالة الحسابات",
+          status_active: "حساب عادي، وصول كامل",
+          status_inactive: "حساب معطل مؤقتاً",
+          status_banned: "حساب محظور نهائياً",
+          status_warn: "لا يمكن تعديل الحالة إلا عبر مسار مشرف مخصص.",
+          copy: "نسخ",
+          copied: "✓ تم النسخ",
+        },
+        es: {
+          hero_desc:
+            "Paquete Laravel <strong>plug-and-play</strong> para proyectos API. Instálalo y todo estará listo: autenticación Sanctum, perfil, reset OTP, roles Spatie y logs de actividad completos.",
+          sb_start: "Inicio",
+          sb_intro: "Introducción",
+          sb_install: "Instalación",
+          sb_user: "Modelo User",
+          sb_config: "Configuración",
+          sb_seeder: "Seeder roles",
+          sb_routes: "Todas las rutas",
+          sb_auth: "Autenticación",
+          sb_profile: "Perfil",
+          sb_otp: "Reset OTP",
+          sb_roles: "Roles y Permisos",
+          sb_advanced: "Avanzado",
+          sb_db: "Base de datos",
+          sb_logs: "Logs de actividad",
+          sb_modes: "Modos de registro",
+          sb_logout: "Modos de logout",
+          sb_status: "Estado cuenta",
+          feat_title: "Características",
+          feat1_t: "Autenticación Sanctum",
+          feat1_d:
+            "Login, logout multi-modo, /me, lista de sesiones activas con revocación específica",
+          feat2_t: "Gestión de perfil",
+          feat2_d:
+            "Nombre, apellido, email, teléfono. Campos configurables. Estado no modificable por el usuario.",
+          feat3_t: "Reset OTP",
+          feat3_d:
+            "Flujo 3 pasos: email → código OTP → reset_token → nueva contraseña",
+          feat4_t: "Roles y Permisos",
+          feat4_d: "CRUD completo via Spatie Laravel Permission.",
+          feat5_t: "Logs de actividad",
+          feat5_d: "IP real, dispositivo, OS, navegador, geolocalización GPS.",
+          feat6_t: "Modo Admin",
+          feat6_d:
+            "Creación de cuentas por admin con contraseña temporal. Estado active/inactive/banned.",
+          install_title: "Instalación",
+          step1: "Instalar via Composer",
+          step2: "Publicar archivos",
+          step3: "Migrar",
+          step4: "Configurar modelo User",
+          step5: "Guard Spatie = sanctum",
+          migrate_ok: "Todas las tablas creadas correctamente.",
+          seeder_title: "Seeder de roles iniciales",
+          seeder_desc:
+            "Ejecutar una vez para inicializar los roles y permisos base.",
+          config_title: "Configuración",
+          config_desc:
+            "Tras vendor:publish, el archivo config/auth-kit.php está disponible.",
+          routes_title: "Rutas disponibles",
+          routes_public: "Autenticación — Públicas",
+          routes_protected: "Autenticación — Protegidas 🔒",
+          routes_profile: "Perfil 🔒",
+          routes_roles: "Roles y Permisos 🔒",
+          routes_logs: "Logs 🔒",
+          th_method: "Método",
+          th_desc: "Descripción",
+          th_cond: "Condición",
+          th_perm: "Permiso",
+          th_status: "Estado",
+          th_login: "Login",
+          r_register: "Registro autónomo",
+          r_register_cond: "Solo modo self",
+          r_login: "Login → token",
+          r_forgot: "Enviar OTP por email",
+          r_verify: "Verificar OTP → reset_token",
+          r_reset: "Nueva contraseña",
+          r_me: "Usuario conectado (roles + permisos)",
+          r_logout: "Logout (3 modos)",
+          r_sessions: "Lista sesiones activas",
+          r_profile_update: "Modificar perfil",
+          r_password: "Cambiar contraseña",
+          r_create_user: "Crear usuario (admin)",
+          r_update_user: "Modificar perfil de usuario",
+          r_roles_list: "Listar roles",
+          r_roles_create: "Crear rol",
+          r_roles_delete: "Eliminar rol",
+          r_perms_list: "Listar permisos",
+          r_perms_create: "Crear permiso",
+          r_assign_perm: "Asignar permiso → rol",
+          r_revoke_perm: "Revocar permiso de rol",
+          r_assign_role: "Asignar rol → usuario",
+          r_revoke_role: "Revocar rol de usuario",
+          r_logs_me: "Mis logs",
+          r_logs_user: "Logs de usuario",
+          r_logs_all: "Todos los logs",
+          filters_hint:
+            "Filtros: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
+          otp_title: "Flujo Reset OTP",
+          otp_desc: "Proceso en 3 pasos para resetear una contraseña olvidada.",
+          otp_step1: "1. Enviar OTP",
+          otp_step2: "2. Verificar OTP",
+          otp_step3: "3. Nueva contraseña",
+          db_title: "Base de datos",
+          db_desc:
+            "Resultado de php artisan migrate — tablas creadas y verificadas en phpMyAdmin.",
+          db_confirm:
+            "Tablas model_has_roles y model_has_permissions verificadas.",
+          db_schemas: "Esquemas detallados",
+          logs_title: "Logs de actividad",
+          logs_desc:
+            "Cada acción importante se registra automáticamente con contexto completo.",
+          log_example: "Ejemplo de log",
+          modes_title: "Modos de registro",
+          mode_self_desc:
+            "El usuario se registra via POST /api/auth/register con su propia contraseña.",
+          mode_admin_desc:
+            "Ruta /register desactivada. Solo admin (create-user) crea cuentas con contraseña temporal.",
+          logout_title: "Modos de logout",
+          status_title: "Estado de cuentas",
+          status_active: "Cuenta normal, acceso completo",
+          status_inactive: "Cuenta desactivada temporalmente",
+          status_banned: "Cuenta baneada definitivamente",
+          status_warn:
+            "El status solo puede modificarse via ruta admin personalizada.",
+          copy: "copiar",
+          copied: "✓ copiado",
+        },
+        zh: {
+          hero_desc:
+            "专为API项目设计的Laravel <strong>即插即用</strong>包。安装后一切就绪：Sanctum身份验证、个人资料、OTP重置、Spatie角色和完整活动日志。",
+          sb_start: "快速开始",
+          sb_intro: "简介",
+          sb_install: "安装",
+          sb_user: "User模型",
+          sb_config: "配置",
+          sb_seeder: "角色种子",
+          sb_routes: "所有路由",
+          sb_auth: "身份验证",
+          sb_profile: "个人资料",
+          sb_otp: "OTP重置",
+          sb_roles: "角色与权限",
+          sb_advanced: "高级",
+          sb_db: "数据库",
+          sb_logs: "活动日志",
+          sb_modes: "注册模式",
+          sb_logout: "登出模式",
+          sb_status: "账户状态",
+          feat_title: "功能特性",
+          feat1_t: "Sanctum身份验证",
+          feat1_d: "登录、多模式登出、/me、活动会话列表及精确撤销",
+          feat2_t: "个人资料管理",
+          feat2_d: "名字、姓氏、邮箱、电话。可配置字段。用户无法修改状态。",
+          feat3_t: "OTP密码重置",
+          feat3_d: "3步流程：邮件→6位OTP→reset_token→新密码",
+          feat4_t: "角色与权限",
+          feat4_d:
+            "通过Spatie Laravel Permission完整CRUD。角色↔权限和用户↔角色分配。",
+          feat5_t: "活动日志",
+          feat5_d: "真实IP、设备、系统、浏览器、GPS定位、CRUD操作和目标资源。",
+          feat6_t: "管理员模式",
+          feat6_d:
+            "管理员创建账户并发送临时密码。状态：active/inactive/banned。",
+          install_title: "安装",
+          step1: "通过Composer安装",
+          step2: "发布文件",
+          step3: "迁移数据库",
+          step4: "配置User模型",
+          step5: "Spatie守卫 = sanctum",
+          migrate_ok: "所有表已成功创建。",
+          seeder_title: "初始角色种子",
+          seeder_desc: "运行一次以初始化基础角色和权限。",
+          config_title: "配置",
+          config_desc: "vendor:publish后，config/auth-kit.php文件可用。",
+          routes_title: "可用路由",
+          routes_public: "身份验证 — 公开",
+          routes_protected: "身份验证 — 受保护 🔒",
+          routes_profile: "个人资料 🔒",
+          routes_roles: "角色与权限 🔒",
+          routes_logs: "日志 🔒",
+          th_method: "方法",
+          th_desc: "描述",
+          th_cond: "条件",
+          th_perm: "权限",
+          th_status: "状态",
+          th_login: "登录",
+          r_register: "自主注册",
+          r_register_cond: "仅限self模式",
+          r_login: "登录 → token",
+          r_forgot: "发送OTP邮件",
+          r_verify: "验证OTP → reset_token",
+          r_reset: "新密码",
+          r_me: "当前用户（角色+权限）",
+          r_logout: "登出（3种模式）",
+          r_sessions: "活动会话列表",
+          r_profile_update: "修改个人资料",
+          r_password: "修改密码",
+          r_create_user: "创建用户（管理员）",
+          r_update_user: "修改用户资料",
+          r_roles_list: "列出角色",
+          r_roles_create: "创建角色",
+          r_roles_delete: "删除角色",
+          r_perms_list: "列出权限",
+          r_perms_create: "创建权限",
+          r_assign_perm: "分配权限给角色",
+          r_revoke_perm: "撤销角色权限",
+          r_assign_role: "分配角色给用户",
+          r_revoke_role: "撤销用户角色",
+          r_logs_me: "我的日志",
+          r_logs_user: "用户日志",
+          r_logs_all: "所有日志",
+          filters_hint:
+            "筛选：?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
+          otp_title: "OTP重置流程",
+          otp_desc: "3步骤重置忘记的密码。",
+          otp_step1: "1. 发送OTP",
+          otp_step2: "2. 验证OTP",
+          otp_step3: "3. 新密码",
+          db_title: "数据库",
+          db_desc: "php artisan migrate的结果 — 在phpMyAdmin中创建并验证的表。",
+          db_confirm: "已验证model_has_roles和model_has_permissions表。",
+          db_schemas: "详细架构",
+          logs_title: "活动日志",
+          logs_desc: "每个重要操作都会自动记录完整上下文。",
+          log_example: "日志示例",
+          modes_title: "注册模式",
+          mode_self_desc:
+            "用户通过POST /api/auth/register使用自己的密码注册。公开路由。",
+          mode_admin_desc:
+            "路由/register已禁用。管理员通过邮件发送临时密码创建账户。",
+          logout_title: "登出模式",
+          status_title: "账户状态",
+          status_active: "正常账户，完全访问",
+          status_inactive: "临时禁用账户",
+          status_banned: "永久封禁账户",
+          status_warn: "状态只能通过自定义管理员路由修改。",
+          copy: "复制",
+          copied: "✓ 已复制",
+        },
+        de: {
+          hero_desc:
+            "Ein <strong>Plug-and-Play</strong> Laravel-Paket für API-Projekte. Installieren und alles ist bereit: Sanctum-Authentifizierung, Profil, OTP-Reset, Spatie-Rollen und vollständige Aktivitätslogs.",
+          sb_start: "Einstieg",
+          sb_intro: "Einführung",
+          sb_install: "Installation",
+          sb_user: "User-Modell",
+          sb_config: "Konfiguration",
+          sb_seeder: "Rollen-Seeder",
+          sb_routes: "Alle Routen",
+          sb_auth: "Authentifizierung",
+          sb_profile: "Profil",
+          sb_otp: "OTP-Reset",
+          sb_roles: "Rollen & Berechtigungen",
+          sb_advanced: "Erweitert",
+          sb_db: "Datenbank",
+          sb_logs: "Aktivitätslogs",
+          sb_modes: "Registrierungsmodi",
+          sb_logout: "Abmeldemodi",
+          sb_status: "Kontostatus",
+          feat_title: "Funktionen",
+          feat1_t: "Sanctum-Authentifizierung",
+          feat1_d:
+            "Login, Multi-Modus-Logout, /me, aktive Sitzungsliste mit gezieltem Widerruf",
+          feat2_t: "Profilverwaltung",
+          feat2_d:
+            "Vorname, Nachname, E-Mail, Telefon. Konfigurierbare Felder. Status nicht vom Benutzer änderbar.",
+          feat3_t: "OTP-Passwort-Reset",
+          feat3_d:
+            "3-Schritte-Ablauf: E-Mail → OTP-Code → reset_token → neues Passwort",
+          feat4_t: "Rollen & Berechtigungen",
+          feat4_d: "Vollständiges CRUD über Spatie Laravel Permission.",
+          feat5_t: "Aktivitätslogs",
+          feat5_d: "Echte IP, Gerät, OS, Browser, GPS-Geolokalisierung.",
+          feat6_t: "Admin-Modus",
+          feat6_d:
+            "Kontoerstellung durch Admin mit temporärem Passwort. Status: active/inactive/banned.",
+          install_title: "Installation",
+          step1: "Via Composer installieren",
+          step2: "Dateien veröffentlichen",
+          step3: "Migrieren",
+          step4: "User-Modell konfigurieren",
+          step5: "Spatie Guard = sanctum",
+          migrate_ok: "Alle Tabellen wurden erfolgreich erstellt.",
+          seeder_title: "Initiale Rollen-Seeder",
+          seeder_desc:
+            "Einmalig ausführen, um Basisrollen und -berechtigungen zu initialisieren.",
+          config_title: "Konfiguration",
+          config_desc:
+            "Nach vendor:publish ist die Datei config/auth-kit.php verfügbar.",
+          routes_title: "Verfügbare Routen",
+          routes_public: "Authentifizierung — Öffentlich",
+          routes_protected: "Authentifizierung — Geschützt 🔒",
+          routes_profile: "Profil 🔒",
+          routes_roles: "Rollen & Berechtigungen 🔒",
+          routes_logs: "Logs 🔒",
+          th_method: "Methode",
+          th_desc: "Beschreibung",
+          th_cond: "Bedingung",
+          th_perm: "Berechtigung",
+          th_status: "Status",
+          th_login: "Login",
+          r_register: "Selbstregistrierung",
+          r_register_cond: "Nur self-Modus",
+          r_login: "Login → Token",
+          r_forgot: "OTP per E-Mail senden",
+          r_verify: "OTP verifizieren → reset_token",
+          r_reset: "Neues Passwort",
+          r_me: "Angemeldeter Benutzer (Rollen + Berechtigungen)",
+          r_logout: "Abmeldung (3 Modi)",
+          r_sessions: "Aktive Sitzungsliste",
+          r_profile_update: "Eigenes Profil bearbeiten",
+          r_password: "Passwort ändern",
+          r_create_user: "Benutzer erstellen (Admin)",
+          r_update_user: "Benutzerprofil bearbeiten",
+          r_roles_list: "Rollen auflisten",
+          r_roles_create: "Rolle erstellen",
+          r_roles_delete: "Rolle löschen",
+          r_perms_list: "Berechtigungen auflisten",
+          r_perms_create: "Berechtigung erstellen",
+          r_assign_perm: "Berechtigung → Rolle zuweisen",
+          r_revoke_perm: "Berechtigung von Rolle entziehen",
+          r_assign_role: "Rolle → Benutzer zuweisen",
+          r_revoke_role: "Rolle von Benutzer entziehen",
+          r_logs_me: "Meine Logs",
+          r_logs_user: "Benutzer-Logs",
+          r_logs_all: "Alle Logs",
+          filters_hint:
+            "Filter: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
+          otp_title: "OTP-Reset-Ablauf",
+          otp_desc:
+            "3-Schritte-Prozess zum Zurücksetzen eines vergessenen Passworts.",
+          otp_step1: "1. OTP senden",
+          otp_step2: "2. OTP verifizieren",
+          otp_step3: "3. Neues Passwort",
+          db_title: "Datenbank",
+          db_desc:
+            "Ergebnis von php artisan migrate — in phpMyAdmin erstellte und überprüfte Tabellen.",
+          db_confirm:
+            "Tabellen model_has_roles und model_has_permissions verifiziert.",
+          db_schemas: "Detaillierte Schemata",
+          logs_title: "Aktivitätslogs",
+          logs_desc:
+            "Jede wichtige Aktion wird automatisch mit vollständigem Kontext protokolliert.",
+          log_example: "Log-Beispiel",
+          modes_title: "Registrierungsmodi",
+          mode_self_desc:
+            "Benutzer registriert sich über POST /api/auth/register mit eigenem Passwort.",
+          mode_admin_desc:
+            "Route /register deaktiviert. Admin erstellt Konten mit temporärem Passwort per E-Mail.",
+          logout_title: "Abmeldemodi",
+          status_title: "Kontostatus",
+          status_active: "Normales Konto, voller Zugriff",
+          status_inactive: "Vorübergehend deaktiviertes Konto",
+          status_banned: "Dauerhaft gesperrtes Konto",
+          status_warn:
+            "Status kann nur über eine benutzerdefinierte Admin-Route geändert werden.",
+          copy: "kopieren",
+          copied: "✓ kopiert",
+        },
+      };
 
-<script>
-/* ═══════════ TRANSLATIONS ═══════════ */
-const T = {
-fr:{
-  hero_desc:"Package Laravel <strong>plug-and-play</strong> pour les projets API. Installez-le et tout est prêt : authentification Sanctum, profil, reset OTP, rôles Spatie et logs d'activité complets.",
-  sb_start:"Démarrage",sb_intro:"Introduction",sb_install:"Installation",sb_user:"Modèle User",sb_config:"Configuration",sb_seeder:"Seeder rôles",sb_routes:"Toutes les routes",sb_auth:"Authentification",sb_profile:"Profil",sb_otp:"Reset OTP",sb_roles:"Rôles & Permissions",sb_advanced:"Avancé",sb_db:"Base de données",sb_logs:"Logs d'activité",sb_modes:"Modes d'inscription",sb_logout:"Modes logout",sb_status:"Statut compte",
-  feat_title:"Fonctionnalités",feat1_t:"Authentification Sanctum",feat1_d:"Login, logout multi-mode, /me, liste des sessions actives avec révocation ciblée",feat2_t:"Gestion de profil",feat2_d:"Prénom, nom, email, téléphone. Champs configurables. Statut non modifiable par l'utilisateur.",feat3_t:"Reset mot de passe OTP",feat3_d:"Flux 3 étapes : email → code OTP → reset_token → nouveau mot de passe",feat4_t:"Rôles & Permissions",feat4_d:"CRUD complet via Spatie Laravel Permission. Assignation rôle↔permission et utilisateur↔rôle.",feat5_t:"Logs d'activité",feat5_d:"IP réelle, appareil, OS, navigateur, géolocalisation GPS, action CRUD et ressource cible.",feat6_t:"Mode Admin",feat6_d:"Création de comptes par admin avec mot de passe temporaire. Statut active/inactive/banned.",
-  install_title:"Installation",step1:"Installer via Composer",step2:"Publier les fichiers",step3:"Migrer",step4:"Configurer le modèle User",step5:"Guard Spatie = sanctum",migrate_ok:"Toutes les tables sont créées : users, auth_kit_activity_logs, auth_kit_password_reset_otps, tables Spatie et Sanctum.",
-  seeder_title:"Seeder de rôles initiaux",seeder_desc:"À exécuter une seule fois pour initialiser les rôles et permissions de base.",
-  config_title:"Configuration",config_desc:"Après vendor:publish, le fichier config/auth-kit.php est disponible.",
-  routes_title:"Routes disponibles",routes_public:"Authentification — Publiques",routes_protected:"Authentification — Protégées 🔒",routes_profile:"Profil 🔒",routes_roles:"Rôles & Permissions 🔒",routes_logs:"Logs 🔒",th_method:"Méthode",th_desc:"Description",th_cond:"Condition",th_perm:"Permission",th_status:"Statut",th_login:"Login",
-  r_register:"Inscription autonome",r_register_cond:"Mode self uniquement",r_login:"Connexion → token",r_forgot:"Envoi OTP par email",r_verify:"Vérifier OTP → reset_token",r_reset:"Nouveau mot de passe",r_me:"Utilisateur connecté (rôles + permissions)",r_logout:"Déconnexion (3 modes)",r_sessions:"Liste des sessions actives",r_profile_update:"Modifier son profil",r_password:"Changer son mot de passe",r_create_user:"Créer un utilisateur (admin)",r_update_user:"Modifier profil d'un utilisateur",r_roles_list:"Lister les rôles",r_roles_create:"Créer un rôle",r_roles_delete:"Supprimer un rôle",r_perms_list:"Lister les permissions",r_perms_create:"Créer une permission",r_assign_perm:"Assigner permission → rôle",r_revoke_perm:"Révoquer permission d'un rôle",r_assign_role:"Assigner rôle → utilisateur",r_revoke_role:"Révoquer rôle d'un utilisateur",r_logs_me:"Mes propres logs",r_logs_user:"Logs d'un utilisateur",r_logs_all:"Tous les logs",
-  filters_hint:"Filtres : ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
-  otp_title:"Flux Reset OTP",otp_desc:"Processus en 3 étapes pour réinitialiser un mot de passe oublié.",otp_step1:"1. Envoyer OTP",otp_step2:"2. Vérifier OTP",otp_step3:"3. Nouveau mot de passe",
-  db_title:"Base de données",db_desc:"Résultat de php artisan migrate — tables créées et vérifiées dans phpMyAdmin.",db_confirm:"Tables model_has_roles et model_has_permissions vérifiées — colonnes role_id / permission_id, model_type, model_id confirmées.",db_schemas:"Schémas détaillés",
-  logs_title:"Logs d'activité",logs_desc:"Chaque action importante est automatiquement journalisée avec contexte complet.",log_example:"Exemple de log",
-  modes_title:"Modes d'inscription",mode_self_desc:"L'utilisateur s'inscrit via POST /api/auth/register avec son propre mot de passe. Route publique.",mode_admin_desc:"Route /register désactivée. Un admin (create-user) crée les comptes. Mot de passe temporaire envoyé par email.",
-  logout_title:"Modes de déconnexion",
-  status_title:"Statut des comptes",status_active:"Compte normal, accès complet",status_inactive:"Compte désactivé temporairement",status_banned:"Compte banni définitivement",status_warn:"Le status ne peut être modifié que via une route admin personnalisée. Il n'est pas dans les editable_fields par défaut.",
-  copy:"copier",copied:"✓ copié"
-},
-en:{
-  hero_desc:"A <strong>plug-and-play</strong> Laravel package for API projects. Install it and everything is ready: Sanctum auth, profile, OTP reset, Spatie roles and complete activity logs.",
-  sb_start:"Getting started",sb_intro:"Introduction",sb_install:"Installation",sb_user:"User model",sb_config:"Configuration",sb_seeder:"Roles seeder",sb_routes:"All routes",sb_auth:"Authentication",sb_profile:"Profile",sb_otp:"OTP Reset",sb_roles:"Roles & Permissions",sb_advanced:"Advanced",sb_db:"Database",sb_logs:"Activity logs",sb_modes:"Registration modes",sb_logout:"Logout modes",sb_status:"Account status",
-  feat_title:"Features",feat1_t:"Sanctum Authentication",feat1_d:"Login, multi-mode logout, /me, active sessions list with targeted revocation",feat2_t:"Profile management",feat2_d:"First name, last name, email, phone. Configurable fields. Status not modifiable by the user.",feat3_t:"OTP Password Reset",feat3_d:"3-step flow: email → 6-digit OTP code → reset_token → new password",feat4_t:"Roles & Permissions",feat4_d:"Full CRUD via Spatie Laravel Permission. Role↔permission and user↔role assignment.",feat5_t:"Activity logs",feat5_d:"Real IP, device, OS, browser, GPS geolocation, CRUD action and target resource.",feat6_t:"Admin mode",feat6_d:"Account creation by admin with temporary password sent by email. Status active/inactive/banned.",
-  install_title:"Installation",step1:"Install via Composer",step2:"Publish files",step3:"Migrate",step4:"Configure User model",step5:"Spatie guard = sanctum",migrate_ok:"All tables are created: users, auth_kit_activity_logs, auth_kit_password_reset_otps, Spatie and Sanctum tables.",
-  seeder_title:"Initial roles seeder",seeder_desc:"Run once to initialize base roles and permissions.",
-  config_title:"Configuration",config_desc:"After vendor:publish, the config/auth-kit.php file is available.",
-  routes_title:"Available routes",routes_public:"Authentication — Public",routes_protected:"Authentication — Protected 🔒",routes_profile:"Profile 🔒",routes_roles:"Roles & Permissions 🔒",routes_logs:"Logs 🔒",th_method:"Method",th_desc:"Description",th_cond:"Condition",th_perm:"Permission",th_status:"Status",th_login:"Login",
-  r_register:"Self registration",r_register_cond:"Mode self only",r_login:"Login → token",r_forgot:"Send OTP by email",r_verify:"Verify OTP → reset_token",r_reset:"New password",r_me:"Authenticated user (roles + permissions)",r_logout:"Logout (3 modes)",r_sessions:"Active sessions list",r_profile_update:"Update own profile",r_password:"Change own password",r_create_user:"Create user (admin)",r_update_user:"Update another user's profile",r_roles_list:"List roles",r_roles_create:"Create role",r_roles_delete:"Delete role",r_perms_list:"List permissions",r_perms_create:"Create permission",r_assign_perm:"Assign permission → role",r_revoke_perm:"Revoke permission from role",r_assign_role:"Assign role → user",r_revoke_role:"Revoke role from user",r_logs_me:"My own logs",r_logs_user:"User's logs",r_logs_all:"All logs",
-  filters_hint:"Filters: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
-  otp_title:"OTP Reset Flow",otp_desc:"3-step process to reset a forgotten password.",otp_step1:"1. Send OTP",otp_step2:"2. Verify OTP",otp_step3:"3. New password",
-  db_title:"Database",db_desc:"Result of php artisan migrate — tables created and verified in phpMyAdmin.",db_confirm:"Tables model_has_roles and model_has_permissions verified — columns role_id / permission_id, model_type, model_id confirmed.",db_schemas:"Detailed schemas",
-  logs_title:"Activity logs",logs_desc:"Every important action is automatically logged with full context.",log_example:"Log example",
-  modes_title:"Registration modes",mode_self_desc:"User registers via POST /api/auth/register with their own password. Public route.",mode_admin_desc:"Route /register disabled. An admin (create-user) creates accounts. Temporary password sent by email.",
-  logout_title:"Logout modes",
-  status_title:"Account status",status_active:"Normal account, full access",status_inactive:"Temporarily disabled account",status_banned:"Permanently banned account",status_warn:"Status can only be modified via a custom admin route. It is not in the default editable_fields.",
-  copy:"copy",copied:"✓ copied"
-},
-ar:{
-  hero_desc:"حزمة Laravel <strong>جاهزة للاستخدام</strong> لمشاريع API. ثبّتها ويصبح كل شيء جاهزاً: مصادقة Sanctum، الملف الشخصي، إعادة تعيين كلمة المرور بـ OTP، أدوار Spatie وسجلات النشاط.",
-  sb_start:"البداية",sb_intro:"مقدمة",sb_install:"التثبيت",sb_user:"نموذج User",sb_config:"الإعداد",sb_seeder:"بذر الأدوار",sb_routes:"جميع المسارات",sb_auth:"المصادقة",sb_profile:"الملف الشخصي",sb_otp:"إعادة تعيين OTP",sb_roles:"الأدوار والصلاحيات",sb_advanced:"متقدم",sb_db:"قاعدة البيانات",sb_logs:"سجلات النشاط",sb_modes:"أوضاع التسجيل",sb_logout:"أوضاع تسجيل الخروج",sb_status:"حالة الحساب",
-  feat_title:"المميزات",feat1_t:"مصادقة Sanctum",feat1_d:"تسجيل الدخول، تسجيل الخروج متعدد الأوضاع، /me، قائمة الجلسات النشطة مع الإلغاء المستهدف",feat2_t:"إدارة الملف الشخصي",feat2_d:"الاسم الأول، الكنية، البريد الإلكتروني، الهاتف. حقول قابلة للإعداد. لا يمكن للمستخدم تعديل الحالة.",feat3_t:"إعادة تعيين كلمة المرور OTP",feat3_d:"خطوات 3: البريد الإلكتروني ← رمز OTP ← reset_token ← كلمة مرور جديدة",feat4_t:"الأدوار والصلاحيات",feat4_d:"إدارة كاملة عبر Spatie Laravel Permission.",feat5_t:"سجلات النشاط",feat5_d:"IP الحقيقي، الجهاز، نظام التشغيل، المتصفح، الموقع الجغرافي GPS.",feat6_t:"وضع المشرف",feat6_d:"إنشاء الحسابات بواسطة المشرف مع كلمة مرور مؤقتة. الحالة: active/inactive/banned.",
-  install_title:"التثبيت",step1:"التثبيت عبر Composer",step2:"نشر الملفات",step3:"تطبيق الترحيل",step4:"إعداد نموذج User",step5:"Guard Spatie = sanctum",migrate_ok:"تم إنشاء جميع الجداول بنجاح.",
-  seeder_title:"بذر الأدوار الأولية",seeder_desc:"يُنفَّذ مرة واحدة لتهيئة الأدوار والصلاحيات الأساسية.",
-  config_title:"الإعداد",config_desc:"بعد vendor:publish، يصبح الملف config/auth-kit.php متاحاً.",
-  routes_title:"المسارات المتاحة",routes_public:"المصادقة — عامة",routes_protected:"المصادقة — محمية 🔒",routes_profile:"الملف الشخصي 🔒",routes_roles:"الأدوار والصلاحيات 🔒",routes_logs:"السجلات 🔒",th_method:"الطريقة",th_desc:"الوصف",th_cond:"الشرط",th_perm:"الصلاحية",th_status:"الحالة",th_login:"الدخول",
-  r_register:"التسجيل الذاتي",r_register_cond:"وضع self فقط",r_login:"تسجيل الدخول → token",r_forgot:"إرسال OTP بالبريد",r_verify:"التحقق من OTP → reset_token",r_reset:"كلمة مرور جديدة",r_me:"المستخدم المتصل (الأدوار + الصلاحيات)",r_logout:"تسجيل الخروج (3 أوضاع)",r_sessions:"قائمة الجلسات النشطة",r_profile_update:"تعديل الملف الشخصي",r_password:"تغيير كلمة المرور",r_create_user:"إنشاء مستخدم (مشرف)",r_update_user:"تعديل ملف مستخدم آخر",r_roles_list:"عرض الأدوار",r_roles_create:"إنشاء دور",r_roles_delete:"حذف دور",r_perms_list:"عرض الصلاحيات",r_perms_create:"إنشاء صلاحية",r_assign_perm:"تعيين صلاحية للدور",r_revoke_perm:"سحب صلاحية من دور",r_assign_role:"تعيين دور للمستخدم",r_revoke_role:"سحب دور من مستخدم",r_logs_me:"سجلاتي",r_logs_user:"سجلات مستخدم",r_logs_all:"جميع السجلات",
-  filters_hint:"الفلاتر: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
-  otp_title:"خطوات إعادة تعيين OTP",otp_desc:"عملية من 3 خطوات لإعادة تعيين كلمة المرور المنسية.",otp_step1:"1. إرسال OTP",otp_step2:"2. التحقق من OTP",otp_step3:"3. كلمة مرور جديدة",
-  db_title:"قاعدة البيانات",db_desc:"نتيجة php artisan migrate — الجداول المنشأة والمتحقق منها في phpMyAdmin.",db_confirm:"تم التحقق من جداول model_has_roles وmodel_has_permissions.",db_schemas:"مخططات مفصّلة",
-  logs_title:"سجلات النشاط",logs_desc:"يتم تسجيل كل إجراء مهم تلقائياً مع السياق الكامل.",log_example:"مثال على السجل",
-  modes_title:"أوضاع التسجيل",mode_self_desc:"يسجل المستخدم بنفسه عبر POST /api/auth/register بكلمة مروره الخاصة.",mode_admin_desc:"مسار /register معطل. المشرف فقط يمكنه إنشاء حسابات مع كلمة مرور مؤقتة.",
-  logout_title:"أوضاع تسجيل الخروج",
-  status_title:"حالة الحسابات",status_active:"حساب عادي، وصول كامل",status_inactive:"حساب معطل مؤقتاً",status_banned:"حساب محظور نهائياً",status_warn:"لا يمكن تعديل الحالة إلا عبر مسار مشرف مخصص.",
-  copy:"نسخ",copied:"✓ تم النسخ"
-},
-es:{
-  hero_desc:"Paquete Laravel <strong>plug-and-play</strong> para proyectos API. Instálalo y todo estará listo: autenticación Sanctum, perfil, reset OTP, roles Spatie y logs de actividad completos.",
-  sb_start:"Inicio",sb_intro:"Introducción",sb_install:"Instalación",sb_user:"Modelo User",sb_config:"Configuración",sb_seeder:"Seeder roles",sb_routes:"Todas las rutas",sb_auth:"Autenticación",sb_profile:"Perfil",sb_otp:"Reset OTP",sb_roles:"Roles y Permisos",sb_advanced:"Avanzado",sb_db:"Base de datos",sb_logs:"Logs de actividad",sb_modes:"Modos de registro",sb_logout:"Modos de logout",sb_status:"Estado cuenta",
-  feat_title:"Características",feat1_t:"Autenticación Sanctum",feat1_d:"Login, logout multi-modo, /me, lista de sesiones activas con revocación específica",feat2_t:"Gestión de perfil",feat2_d:"Nombre, apellido, email, teléfono. Campos configurables. Estado no modificable por el usuario.",feat3_t:"Reset OTP",feat3_d:"Flujo 3 pasos: email → código OTP → reset_token → nueva contraseña",feat4_t:"Roles y Permisos",feat4_d:"CRUD completo via Spatie Laravel Permission.",feat5_t:"Logs de actividad",feat5_d:"IP real, dispositivo, OS, navegador, geolocalización GPS.",feat6_t:"Modo Admin",feat6_d:"Creación de cuentas por admin con contraseña temporal. Estado active/inactive/banned.",
-  install_title:"Instalación",step1:"Instalar via Composer",step2:"Publicar archivos",step3:"Migrar",step4:"Configurar modelo User",step5:"Guard Spatie = sanctum",migrate_ok:"Todas las tablas creadas correctamente.",
-  seeder_title:"Seeder de roles iniciales",seeder_desc:"Ejecutar una vez para inicializar los roles y permisos base.",
-  config_title:"Configuración",config_desc:"Tras vendor:publish, el archivo config/auth-kit.php está disponible.",
-  routes_title:"Rutas disponibles",routes_public:"Autenticación — Públicas",routes_protected:"Autenticación — Protegidas 🔒",routes_profile:"Perfil 🔒",routes_roles:"Roles y Permisos 🔒",routes_logs:"Logs 🔒",th_method:"Método",th_desc:"Descripción",th_cond:"Condición",th_perm:"Permiso",th_status:"Estado",th_login:"Login",
-  r_register:"Registro autónomo",r_register_cond:"Solo modo self",r_login:"Login → token",r_forgot:"Enviar OTP por email",r_verify:"Verificar OTP → reset_token",r_reset:"Nueva contraseña",r_me:"Usuario conectado (roles + permisos)",r_logout:"Logout (3 modos)",r_sessions:"Lista sesiones activas",r_profile_update:"Modificar perfil",r_password:"Cambiar contraseña",r_create_user:"Crear usuario (admin)",r_update_user:"Modificar perfil de usuario",r_roles_list:"Listar roles",r_roles_create:"Crear rol",r_roles_delete:"Eliminar rol",r_perms_list:"Listar permisos",r_perms_create:"Crear permiso",r_assign_perm:"Asignar permiso → rol",r_revoke_perm:"Revocar permiso de rol",r_assign_role:"Asignar rol → usuario",r_revoke_role:"Revocar rol de usuario",r_logs_me:"Mis logs",r_logs_user:"Logs de usuario",r_logs_all:"Todos los logs",
-  filters_hint:"Filtros: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
-  otp_title:"Flujo Reset OTP",otp_desc:"Proceso en 3 pasos para resetear una contraseña olvidada.",otp_step1:"1. Enviar OTP",otp_step2:"2. Verificar OTP",otp_step3:"3. Nueva contraseña",
-  db_title:"Base de datos",db_desc:"Resultado de php artisan migrate — tablas creadas y verificadas en phpMyAdmin.",db_confirm:"Tablas model_has_roles y model_has_permissions verificadas.",db_schemas:"Esquemas detallados",
-  logs_title:"Logs de actividad",logs_desc:"Cada acción importante se registra automáticamente con contexto completo.",log_example:"Ejemplo de log",
-  modes_title:"Modos de registro",mode_self_desc:"El usuario se registra via POST /api/auth/register con su propia contraseña.",mode_admin_desc:"Ruta /register desactivada. Solo admin (create-user) crea cuentas con contraseña temporal.",
-  logout_title:"Modos de logout",
-  status_title:"Estado de cuentas",status_active:"Cuenta normal, acceso completo",status_inactive:"Cuenta desactivada temporalmente",status_banned:"Cuenta baneada definitivamente",status_warn:"El status solo puede modificarse via ruta admin personalizada.",
-  copy:"copiar",copied:"✓ copiado"
-},
-zh:{
-  hero_desc:"专为API项目设计的Laravel <strong>即插即用</strong>包。安装后一切就绪：Sanctum身份验证、个人资料、OTP重置、Spatie角色和完整活动日志。",
-  sb_start:"快速开始",sb_intro:"简介",sb_install:"安装",sb_user:"User模型",sb_config:"配置",sb_seeder:"角色种子",sb_routes:"所有路由",sb_auth:"身份验证",sb_profile:"个人资料",sb_otp:"OTP重置",sb_roles:"角色与权限",sb_advanced:"高级",sb_db:"数据库",sb_logs:"活动日志",sb_modes:"注册模式",sb_logout:"登出模式",sb_status:"账户状态",
-  feat_title:"功能特性",feat1_t:"Sanctum身份验证",feat1_d:"登录、多模式登出、/me、活动会话列表及精确撤销",feat2_t:"个人资料管理",feat2_d:"名字、姓氏、邮箱、电话。可配置字段。用户无法修改状态。",feat3_t:"OTP密码重置",feat3_d:"3步流程：邮件→6位OTP→reset_token→新密码",feat4_t:"角色与权限",feat4_d:"通过Spatie Laravel Permission完整CRUD。角色↔权限和用户↔角色分配。",feat5_t:"活动日志",feat5_d:"真实IP、设备、系统、浏览器、GPS定位、CRUD操作和目标资源。",feat6_t:"管理员模式",feat6_d:"管理员创建账户并发送临时密码。状态：active/inactive/banned。",
-  install_title:"安装",step1:"通过Composer安装",step2:"发布文件",step3:"迁移数据库",step4:"配置User模型",step5:"Spatie守卫 = sanctum",migrate_ok:"所有表已成功创建。",
-  seeder_title:"初始角色种子",seeder_desc:"运行一次以初始化基础角色和权限。",
-  config_title:"配置",config_desc:"vendor:publish后，config/auth-kit.php文件可用。",
-  routes_title:"可用路由",routes_public:"身份验证 — 公开",routes_protected:"身份验证 — 受保护 🔒",routes_profile:"个人资料 🔒",routes_roles:"角色与权限 🔒",routes_logs:"日志 🔒",th_method:"方法",th_desc:"描述",th_cond:"条件",th_perm:"权限",th_status:"状态",th_login:"登录",
-  r_register:"自主注册",r_register_cond:"仅限self模式",r_login:"登录 → token",r_forgot:"发送OTP邮件",r_verify:"验证OTP → reset_token",r_reset:"新密码",r_me:"当前用户（角色+权限）",r_logout:"登出（3种模式）",r_sessions:"活动会话列表",r_profile_update:"修改个人资料",r_password:"修改密码",r_create_user:"创建用户（管理员）",r_update_user:"修改用户资料",r_roles_list:"列出角色",r_roles_create:"创建角色",r_roles_delete:"删除角色",r_perms_list:"列出权限",r_perms_create:"创建权限",r_assign_perm:"分配权限给角色",r_revoke_perm:"撤销角色权限",r_assign_role:"分配角色给用户",r_revoke_role:"撤销用户角色",r_logs_me:"我的日志",r_logs_user:"用户日志",r_logs_all:"所有日志",
-  filters_hint:"筛选：?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
-  otp_title:"OTP重置流程",otp_desc:"3步骤重置忘记的密码。",otp_step1:"1. 发送OTP",otp_step2:"2. 验证OTP",otp_step3:"3. 新密码",
-  db_title:"数据库",db_desc:"php artisan migrate的结果 — 在phpMyAdmin中创建并验证的表。",db_confirm:"已验证model_has_roles和model_has_permissions表。",db_schemas:"详细架构",
-  logs_title:"活动日志",logs_desc:"每个重要操作都会自动记录完整上下文。",log_example:"日志示例",
-  modes_title:"注册模式",mode_self_desc:"用户通过POST /api/auth/register使用自己的密码注册。公开路由。",mode_admin_desc:"路由/register已禁用。管理员通过邮件发送临时密码创建账户。",
-  logout_title:"登出模式",
-  status_title:"账户状态",status_active:"正常账户，完全访问",status_inactive:"临时禁用账户",status_banned:"永久封禁账户",status_warn:"状态只能通过自定义管理员路由修改。",
-  copy:"复制",copied:"✓ 已复制"
-},
-de:{
-  hero_desc:"Ein <strong>Plug-and-Play</strong> Laravel-Paket für API-Projekte. Installieren und alles ist bereit: Sanctum-Authentifizierung, Profil, OTP-Reset, Spatie-Rollen und vollständige Aktivitätslogs.",
-  sb_start:"Einstieg",sb_intro:"Einführung",sb_install:"Installation",sb_user:"User-Modell",sb_config:"Konfiguration",sb_seeder:"Rollen-Seeder",sb_routes:"Alle Routen",sb_auth:"Authentifizierung",sb_profile:"Profil",sb_otp:"OTP-Reset",sb_roles:"Rollen & Berechtigungen",sb_advanced:"Erweitert",sb_db:"Datenbank",sb_logs:"Aktivitätslogs",sb_modes:"Registrierungsmodi",sb_logout:"Abmeldemodi",sb_status:"Kontostatus",
-  feat_title:"Funktionen",feat1_t:"Sanctum-Authentifizierung",feat1_d:"Login, Multi-Modus-Logout, /me, aktive Sitzungsliste mit gezieltem Widerruf",feat2_t:"Profilverwaltung",feat2_d:"Vorname, Nachname, E-Mail, Telefon. Konfigurierbare Felder. Status nicht vom Benutzer änderbar.",feat3_t:"OTP-Passwort-Reset",feat3_d:"3-Schritte-Ablauf: E-Mail → OTP-Code → reset_token → neues Passwort",feat4_t:"Rollen & Berechtigungen",feat4_d:"Vollständiges CRUD über Spatie Laravel Permission.",feat5_t:"Aktivitätslogs",feat5_d:"Echte IP, Gerät, OS, Browser, GPS-Geolokalisierung.",feat6_t:"Admin-Modus",feat6_d:"Kontoerstellung durch Admin mit temporärem Passwort. Status: active/inactive/banned.",
-  install_title:"Installation",step1:"Via Composer installieren",step2:"Dateien veröffentlichen",step3:"Migrieren",step4:"User-Modell konfigurieren",step5:"Spatie Guard = sanctum",migrate_ok:"Alle Tabellen wurden erfolgreich erstellt.",
-  seeder_title:"Initiale Rollen-Seeder",seeder_desc:"Einmalig ausführen, um Basisrollen und -berechtigungen zu initialisieren.",
-  config_title:"Konfiguration",config_desc:"Nach vendor:publish ist die Datei config/auth-kit.php verfügbar.",
-  routes_title:"Verfügbare Routen",routes_public:"Authentifizierung — Öffentlich",routes_protected:"Authentifizierung — Geschützt 🔒",routes_profile:"Profil 🔒",routes_roles:"Rollen & Berechtigungen 🔒",routes_logs:"Logs 🔒",th_method:"Methode",th_desc:"Beschreibung",th_cond:"Bedingung",th_perm:"Berechtigung",th_status:"Status",th_login:"Login",
-  r_register:"Selbstregistrierung",r_register_cond:"Nur self-Modus",r_login:"Login → Token",r_forgot:"OTP per E-Mail senden",r_verify:"OTP verifizieren → reset_token",r_reset:"Neues Passwort",r_me:"Angemeldeter Benutzer (Rollen + Berechtigungen)",r_logout:"Abmeldung (3 Modi)",r_sessions:"Aktive Sitzungsliste",r_profile_update:"Eigenes Profil bearbeiten",r_password:"Passwort ändern",r_create_user:"Benutzer erstellen (Admin)",r_update_user:"Benutzerprofil bearbeiten",r_roles_list:"Rollen auflisten",r_roles_create:"Rolle erstellen",r_roles_delete:"Rolle löschen",r_perms_list:"Berechtigungen auflisten",r_perms_create:"Berechtigung erstellen",r_assign_perm:"Berechtigung → Rolle zuweisen",r_revoke_perm:"Berechtigung von Rolle entziehen",r_assign_role:"Rolle → Benutzer zuweisen",r_revoke_role:"Rolle von Benutzer entziehen",r_logs_me:"Meine Logs",r_logs_user:"Benutzer-Logs",r_logs_all:"Alle Logs",
-  filters_hint:"Filter: ?event=login&from=2024-01-01&to=2024-12-31&per_page=50",
-  otp_title:"OTP-Reset-Ablauf",otp_desc:"3-Schritte-Prozess zum Zurücksetzen eines vergessenen Passworts.",otp_step1:"1. OTP senden",otp_step2:"2. OTP verifizieren",otp_step3:"3. Neues Passwort",
-  db_title:"Datenbank",db_desc:"Ergebnis von php artisan migrate — in phpMyAdmin erstellte und überprüfte Tabellen.",db_confirm:"Tabellen model_has_roles und model_has_permissions verifiziert.",db_schemas:"Detaillierte Schemata",
-  logs_title:"Aktivitätslogs",logs_desc:"Jede wichtige Aktion wird automatisch mit vollständigem Kontext protokolliert.",log_example:"Log-Beispiel",
-  modes_title:"Registrierungsmodi",mode_self_desc:"Benutzer registriert sich über POST /api/auth/register mit eigenem Passwort.",mode_admin_desc:"Route /register deaktiviert. Admin erstellt Konten mit temporärem Passwort per E-Mail.",
-  logout_title:"Abmeldemodi",
-  status_title:"Kontostatus",status_active:"Normales Konto, voller Zugriff",status_inactive:"Vorübergehend deaktiviertes Konto",status_banned:"Dauerhaft gesperrtes Konto",status_warn:"Status kann nur über eine benutzerdefinierte Admin-Route geändert werden.",
-  copy:"kopieren",copied:"✓ kopiert"
-}
-};
+      let currentLang = "en";
 
-let currentLang = 'fr';
+      function applyTranslations(lang) {
+        const t = T[lang] || T.fr;
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (t[key] !== undefined) el.innerHTML = t[key];
+        });
+        document.querySelectorAll("[data-i18n-copy]").forEach((el) => {
+          el.textContent = t.copy || "copy";
+        });
+        currentLang = lang;
+      }
 
-function applyTranslations(lang) {
-  const t = T[lang] || T.fr;
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (t[key] !== undefined) el.innerHTML = t[key];
-  });
-  document.querySelectorAll('[data-i18n-copy]').forEach(el => {
-    el.textContent = t.copy || 'copy';
-  });
-  currentLang = lang;
-}
+      function setLang(lang, flag, name, dir) {
+        document.documentElement.lang = lang;
+        document.documentElement.dir = dir;
+        document.getElementById("currentFlag").textContent = flag;
+        document.getElementById("currentLang").textContent = name;
+        document.querySelectorAll(".lang-option").forEach((o) => {
+          o.classList.toggle("active", o.textContent.trim().includes(name));
+        });
+        applyTranslations(lang);
+        document.getElementById("langSelect").classList.remove("open");
+      }
 
-function setLang(lang, flag, name, dir) {
-  document.documentElement.lang = lang;
-  document.documentElement.dir = dir;
-  document.getElementById('currentFlag').textContent = flag;
-  document.getElementById('currentLang').textContent = name;
-  document.querySelectorAll('.lang-option').forEach(o => {
-    o.classList.toggle('active', o.textContent.trim().includes(name));
-  });
-  applyTranslations(lang);
-  document.getElementById('langSelect').classList.remove('open');
-}
+      function toggleLang() {
+        document.getElementById("langSelect").classList.toggle("open");
+      }
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#langSelect")) {
+          document.getElementById("langSelect").classList.remove("open");
+        }
+      });
 
-function toggleLang() {
-  document.getElementById('langSelect').classList.toggle('open');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('#langSelect')) {
-    document.getElementById('langSelect').classList.remove('open');
-  }
-});
+      /* ── THEME ── */
+      function toggleTheme() {
+        const html = document.documentElement;
+        const dark = html.getAttribute("data-theme") === "dark";
+        html.setAttribute("data-theme", dark ? "light" : "dark");
+        document.getElementById("themeBtn").textContent = dark ? "☽" : "☀";
+      }
 
-/* ── THEME ── */
-function toggleTheme() {
-  const html = document.documentElement;
-  const dark = html.getAttribute('data-theme') === 'dark';
-  html.setAttribute('data-theme', dark ? 'light' : 'dark');
-  document.getElementById('themeBtn').textContent = dark ? '☽' : '☀';
-}
+      /* ── COPY ── */
+      function copyCode(btn) {
+        const pre = btn.closest(".code-block").querySelector("pre");
+        navigator.clipboard.writeText(pre.innerText).then(() => {
+          const t = T[currentLang] || T.fr;
+          const orig = btn.textContent;
+          btn.textContent = t.copied || "✓";
+          btn.style.color = "var(--accent)";
+          setTimeout(() => {
+            btn.textContent = orig;
+            btn.style.color = "";
+          }, 1800);
+        });
+      }
 
-/* ── COPY ── */
-function copyCode(btn) {
-  const pre = btn.closest('.code-block').querySelector('pre');
-  navigator.clipboard.writeText(pre.innerText).then(() => {
-    const t = T[currentLang] || T.fr;
-    const orig = btn.textContent;
-    btn.textContent = t.copied || '✓';
-    btn.style.color = 'var(--accent)';
-    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1800);
-  });
-}
+      /* ── TABS ── */
+      function openTab(e, id) {
+        const block = e.target.closest(".tabs");
+        block
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        block
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        e.target.classList.add("active");
+        document.getElementById(id).classList.add("active");
+      }
 
-/* ── TABS ── */
-function openTab(e, id) {
-  const block = e.target.closest('.tabs');
-  block.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  block.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  e.target.classList.add('active');
-  document.getElementById(id).classList.add('active');
-}
+      /* ── SIDEBAR ACTIVE ── */
+      const allSections = document.querySelectorAll("section[id], div[id]");
+      const allLinks = document.querySelectorAll(".sidebar a");
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              allLinks.forEach((l) =>
+                l.classList.toggle(
+                  "active",
+                  l.getAttribute("href") === "#" + e.target.id,
+                ),
+              );
+            }
+          });
+        },
+        { rootMargin: "-30% 0px -60% 0px" },
+      );
+      allSections.forEach((s) => obs.observe(s));
 
-/* ── SIDEBAR ACTIVE ── */
-const allSections = document.querySelectorAll('section[id], div[id]');
-const allLinks = document.querySelectorAll('.sidebar a');
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      allLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
-    }
-  });
-}, { rootMargin: '-30% 0px -60% 0px' });
-allSections.forEach(s => obs.observe(s));
-</script>
-</body>
+      setLang("en", "🇬🇧", "English", "ltr");
+    </script>
+  </body>
 </html>

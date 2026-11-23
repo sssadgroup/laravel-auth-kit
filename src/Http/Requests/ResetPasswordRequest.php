@@ -2,12 +2,10 @@
 
 namespace S3Tech\AuthKit\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validation de la réinitialisation du mot de passe (étape 3 du flux OTP).
  */
-class ResetPasswordRequest extends FormRequest
+class ResetPasswordRequest extends AuthKitFormRequest
 {
     public function authorize(): bool { return true; }
 

@@ -51,6 +51,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Messages
+    |--------------------------------------------------------------------------
+    | Toutes les réponses textuelles du package sont bilingues (anglais,
+    | français). La clé 'message' ou 'error' utilise la langue résolue depuis :
+    |   1. le header X-Auth-Kit-Locale
+    |   2. le paramètre de query string ?lang=
+    |   3. le header Accept-Language
+    | puis retombe sur 'default_locale'.
+    */
+    'messages' => [
+        'default_locale' => 'en',
+        'supported_locales' => ['en', 'fr'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Inscription (Register)
     |--------------------------------------------------------------------------
     | Deux modes mutuellement exclusifs :

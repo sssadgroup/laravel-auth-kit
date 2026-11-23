@@ -2,13 +2,11 @@
 
 namespace S3Tech\AuthKit\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validation du changement de mot de passe de l'utilisateur connecté.
  * Requiert l'ancien mot de passe (vérifié dans le contrôleur, pas ici).
  */
-class UpdatePasswordRequest extends FormRequest
+class UpdatePasswordRequest extends AuthKitFormRequest
 {
     public function authorize(): bool { return true; }
 
